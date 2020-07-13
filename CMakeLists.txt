@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.13)
+project(calculator)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS true)
+
+set(SOURCES 
+	src/main.cpp
+	src/commons.cpp
+	src/string_visitor.cpp
+	src/lexer.cpp
+	src/parser.cpp
+	src/tokens.cpp
+	src/value.cpp
+	src/ast_evaluator.cpp
+	src/environment.cpp
+)
+
+
+set(CMAKE_CXX_STANDARD 17)
+
+add_executable(calc ${SOURCES})
