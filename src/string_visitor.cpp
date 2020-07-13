@@ -12,6 +12,10 @@ void DebugPrinterEvaluator::visit_number_expression(Number n)
     }
     push(str_repr_of_number);
 }
+void DebugPrinterEvaluator::visit_string_expression(String s)
+{
+    push("\"" + s + "\"");
+}
 void DebugPrinterEvaluator::visit_and_expression(const ExprPtr& left, const ExprPtr& right)
 {
     left->evaluate(*this);

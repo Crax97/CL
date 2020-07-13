@@ -116,6 +116,59 @@ Token Lexer::check_for_alternative(char expected, TokenType first,
     }
     return make_token(first);
 }
+Token Lexer::parse_string(char delim)
+{
+    String s;
+    char c = advance_stream();
+    while (c != delim) {
+	if (c == '\\') {
+	    char selector = advance_stream();
+	    switch (selector) {
+	    case 'n':
+		c = '\n';
+		break;
+	    case 'b':
+		c = '\b';
+		break;
+	    case 'a':
+		c = '\a';
+		break;
+	    case 't':
+		c = '\t';
+		break;
+	    case 'f':
+		c = '\f';
+		break;
+	    case 'r':
+		c = '\r';
+		break;
+	    case 'v':
+		c = '\v';
+		break;
+	    case '"':
+		c = '"';
+		break;
+	    case '\'':
+		c = '\'';
+		break;
+	    case '\\':
+		c = '\\';
+		break;
+	    case 'x':
+	    case 'u':
+	    case 'U':
+		TODO();
+		break;
+	    }
+	}
+	s += c;
+	c = advance_stream();
+	if (is_at_end()) {
+	    throw LexerException("Unexpected EOF while parsing string", m_current_source_line, m_current_line, m_current_column);
+	}
+    }
+    return make_token(TokenType::String, s);
+}
 
 Token Lexer::parse_number()
 {
@@ -223,6 +276,9 @@ Token Lexer::try_lex_one()
 	return make_token(TokenType::Xor);
     }
 
+    if (ch == '"' || ch == '\"') {
+	return parse_string(ch);
+    }
     if (isdigit(ch)) {
 	previous_character();
 	return parse_number();

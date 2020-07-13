@@ -384,6 +384,9 @@ ExprPtr Parser::literal()
     if (match(TokenType::Number)) {
 	next();
 	return std::make_unique<NumberExpression>(next_token.get<Number>());
+    } else if (match(TokenType::String)) {
+	consume(TokenType::String);
+	return std::make_unique<StringExpression>(next_token.get<String>());
     } else if (match(TokenType::Identifier)) {
 	auto name = next_token.get<std::string>();
 	next();

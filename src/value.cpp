@@ -6,6 +6,16 @@
 #include <sstream>
 #include <variant>
 
+std::string num_to_str_pretty_formatted(double n)
+{
+    std::string repr = std::to_string(n);
+    auto last_index_of = repr.find_last_not_of('0');
+    repr.erase(last_index_of, repr.size());
+    if (repr[repr.size() - 1] == '.')
+	repr.pop_back();
+    return repr;
+}
+
 namespace Calculator {
 struct NegateVisitor {
     RawValue operator()(const Number v) { return -v; }
@@ -19,7 +29,7 @@ struct NegateVisitor {
 
 struct StringVisitor {
     std::string operator()(const std::monostate v) { return "null"; }
-    std::string operator()(const Number v) { return std::to_string(v); }
+    std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
     std::string operator()(const CallablePtr& call)
     {
 	std::stringstream str;
@@ -27,15 +37,20 @@ struct StringVisitor {
 	str << "Function <0x" << std::hex << address << ">";
 	return str.str();
     }
+    std::string operator()(const String& str)
+    {
+	return str;
+    }
 };
 
 struct StringRepresentationVisitor {
-    std::string operator()(const std::monostate v) { return "null"; }
+    std::string operator()(const std::monostate v) { return "void"; }
     std::string operator()(const Number v)
     {
-	return "Real " + std::to_string(-v);
+	return std::to_string(v);
     }
-    std::string operator()(const CallablePtr& call) { return "TODO"; }
+    std::string operator()(const CallablePtr& call) { return StringVisitor()(call); }
+    std::string operator()(const String& str) { return "\"" + str + "\""; }
 };
 
 struct TruthinessVisitor {
@@ -48,6 +63,7 @@ struct EqualityOperator {
     bool operator()(const Number v, const Number o) { return v == o; }
     bool operator()(const std::monostate v, const std::monostate o) { return true; }
     bool operator()(const CallablePtr* l, const CallablePtr* r) { return l == r; }
+    bool operator()(const String& l, const String& r) { return l == r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
 };
@@ -55,6 +71,7 @@ struct NegatedEqualityOperator {
     bool operator()(const Number v, const Number o) { return v != o; }
     bool operator()(const std::monostate v, const std::monostate o) { return true; }
     bool operator()(const CallablePtr* l, const CallablePtr* r) { return l != r; }
+    bool operator()(const String& l, const String& r) { return l != r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
 };
@@ -62,18 +79,21 @@ struct NegatedEqualityOperator {
 struct LessThanOperator {
     bool operator()(const Number v, const Number o) { return v < o; }
     bool operator()(const std::monostate v, const std::monostate o) { return true; }
+    bool operator()(const String& l, const String& r) { return l < r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
 };
 struct GreaterThanOperator {
     bool operator()(const Number v, const Number o) { return v > o; }
     bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const String& l, const String& r) { return l > r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
 };
 struct LessEqualsOperator {
     bool operator()(const Number v, const Number o) { return v <= o; }
     bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const String& l, const String& r) { return l <= r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
 };
@@ -81,11 +101,21 @@ struct LessEqualsOperator {
 struct GreaterEqualsOperator {
     bool operator()(const Number v, const Number o) { return v >= o; }
     bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const String& l, const String& r) { return l >= r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
 };
 
-Number RuntimeValue::as_number() const
+struct SumOperator {
+    RuntimeValue operator()(const Number n, const Number o) { return n + o; }
+    template <class T>
+    RuntimeValue operator()(const String& s, const T& o) { return s + StringVisitor()(o); }
+    template <class T, class U>
+    RuntimeValue operator()(const T& _t, const U& _u) { throw RuntimeException("Values cannot be summed."); }
+};
+
+Number
+RuntimeValue::as_number() const
 {
     if (std::holds_alternative<Number>(m_value)) {
 	return std::get<Number>(m_value);
@@ -126,7 +156,7 @@ void RuntimeValue::negate()
 
 RuntimeValue RuntimeValue::operator+(const RuntimeValue& other)
 {
-    return this->as_number() + other.as_number();
+    return std::visit(SumOperator {}, this->m_value, other.m_value);
 }
 RuntimeValue RuntimeValue::operator-(const RuntimeValue& other)
 {

@@ -25,7 +25,7 @@ private:
     void update_col_and_line(char ch) noexcept;
 
     Token parse_number();
-    Token parse_string(char end);
+    Token parse_string(char delimiter);
     Token parse_keyword();
 
     template <class... T>

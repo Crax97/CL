@@ -24,6 +24,7 @@ class Callable;
 class Expression;
 
 using Number = double;
+using String = std::string;
 using Args = std::vector<RuntimeValue>;
 using Names = std::vector<std::string>;
 using ExprPtr = std::shared_ptr<Expression>;
@@ -57,6 +58,7 @@ enum class UnaryOp {
 enum class TokenType {
     Eof,
     Number,
+    String,
     Plus,
     Minus,
     Star,

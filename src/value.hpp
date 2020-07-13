@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commons.hpp"
+#include "exceptions.hpp"
 
 #include <map>
 #include <memory>
@@ -18,7 +19,7 @@ public:
     virtual uint8_t arity() = 0;
 };
 
-using RawValue = std::variant<std::monostate, Number, CallablePtr>;
+using RawValue = std::variant<std::monostate, Number, String, CallablePtr>;
 
 class RuntimeValue {
 private:
@@ -31,7 +32,19 @@ public:
     bool is_truthy() const noexcept;
     bool is_null() const noexcept;
     bool is_number() const noexcept;
+    bool is_string() const noexcept { return std::holds_alternative<String>(m_value); }
     bool is_callable() const noexcept;
+    template <class T>
+    bool is() const noexcept { return std::holds_alternative<T>(m_value); }
+
+    template <class T>
+    T& as()
+    {
+	if (is<T>()) {
+	    return std::get<T>(m_value);
+	}
+	throw RuntimeException(to_string() + " is not " + typeid(T).name());
+    }
     void negate();
     RuntimeValue operator+(const RuntimeValue& other);
     RuntimeValue operator-(const RuntimeValue& other);
@@ -54,6 +67,10 @@ public:
 
     RuntimeValue(Number n) noexcept
 	: m_value(n)
+    {
+    }
+    RuntimeValue(String s) noexcept
+	: m_value(s)
     {
     }
     RuntimeValue(CallablePtr c) noexcept

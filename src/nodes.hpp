@@ -11,6 +11,7 @@ namespace Calculator {
 class Evaluator {
 public:
     virtual void visit_number_expression(Number n) = 0;
+    virtual void visit_string_expression(String s) = 0;
     virtual void visit_and_expression(const ExprPtr& left, const ExprPtr& right) = 0;
     virtual void visit_or_expression(const ExprPtr& left, const ExprPtr& right) = 0;
     virtual void visit_binary_expression(const ExprPtr& left, BinaryOp op, const ExprPtr& right) = 0;
@@ -39,6 +40,21 @@ public:
     {
     }
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_number_expression(m_val); }
+};
+
+class StringExpression : public Expression {
+private:
+    String m_str;
+
+public:
+    StringExpression(String s) noexcept
+	: m_str(s)
+    {
+    }
+    void evaluate(Evaluator& evaluator) const override
+    {
+	evaluator.visit_string_expression(m_str);
+    }
 };
 
 class AndExpression : public Expression {

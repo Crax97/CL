@@ -8,7 +8,10 @@ void ASTEvaluator::visit_number_expression(Number n)
 {
     push(RuntimeValue(n));
 }
-
+void ASTEvaluator::visit_string_expression(String s)
+{
+    push(RuntimeValue(s));
+}
 void ASTEvaluator::visit_and_expression(const ExprPtr& left, const ExprPtr& right)
 {
     left->evaluate(*this);
