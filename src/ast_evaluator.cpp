@@ -1,6 +1,7 @@
 #include "ast_evaluator.hpp"
 #include "commons.hpp"
 #include "exceptions.hpp"
+#include "value.hpp"
 #include <algorithm>
 
 namespace Calculator {
@@ -113,15 +114,23 @@ void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
     fun->evaluate(*this);
     auto call = pop();
     if (call.is_callable()) {
+	auto callable = call.as_callable();
+
+	if (args.size() != callable->arity() && callable->arity() != VAR_ARGS) {
+	    throw RuntimeException(
+		"This callable expects " + std::to_string(callable->arity())
+		+ " arguments, but it got " + std::to_string(args.size()) + "!");
+	}
 	Args evaluated_args;
 	for (const auto& arg : args) {
 	    arg->evaluate(*this);
 	    evaluated_args.push_back(pop());
 	}
 	m_env.scope_in();
-	auto callable = call.as_callable();
 	push(callable->call(evaluated_args, m_env));
 	m_env.scope_out();
+    } else {
+	throw RuntimeException(call.to_string() + " is not callable.");
     }
 }
 void ASTEvaluator::visit_fun_def(const Names& names, const ExprPtr& body)
@@ -158,11 +167,6 @@ void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_br
 
 RuntimeValue ASTFunction::call(Args& args, Env<RuntimeValue>& env)
 {
-    if (args.size() != m_arg_names.size()) {
-	throw RuntimeException(
-	    "This callable expects " + std::to_string(m_arg_names.size())
-	    + " arguments, but it got " + std::to_string(args.size()) + "!");
-    }
     for (size_t i = 0; i < args.size(); i++) {
 	env.assign(m_arg_names[i], args[i]);
     }

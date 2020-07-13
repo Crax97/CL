@@ -13,6 +13,8 @@
 namespace Calculator {
 class RuntimeValue;
 
+constexpr uint8_t VAR_ARGS = 0xFF;
+
 class Callable {
 public:
     virtual RuntimeValue call(Args& args, Env<RuntimeValue>& env) = 0;
@@ -38,7 +40,7 @@ public:
     bool is() const noexcept { return std::holds_alternative<T>(m_value); }
 
     template <class T>
-    T& as()
+    T as() const
     {
 	if (is<T>()) {
 	    return std::get<T>(m_value);

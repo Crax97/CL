@@ -13,6 +13,7 @@ set(SOURCES
 	src/value.cpp
 	src/ast_evaluator.cpp
 	src/environment.cpp
+	src/std_lib.cpp
 )
 
 

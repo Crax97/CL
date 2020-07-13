@@ -14,6 +14,7 @@
 #include "lexer.hpp"
 #include "nodes.hpp"
 #include "parser.hpp"
+#include "std_lib.hpp"
 #include "string_visitor.hpp"
 #include "tokens.hpp"
 #include "value.hpp"
@@ -59,34 +60,9 @@ void run_from_cli(Calculator::Env<Calculator::RuntimeValue>& env)
 int main(int argc, char** argv)
 {
     auto env = Calculator::StackedEnvironment();
-    constexpr auto PI = 3.14159265359;
-    env.assign("sin", Calculator::RuntimeValue(std::make_shared<Calculator::Function>([](const Calculator::Args& args, Calculator::Env<Calculator::RuntimeValue>& env) {
-	auto num = args[0].as_number();
-	return sin(num);
-    },
-			  1)));
-    env.assign("cos", Calculator::RuntimeValue(std::make_shared<Calculator::Function>([](const Calculator::Args& args, auto& env) {
-	auto num = args[0].as_number();
-	return cos(num);
-    },
-			  1)));
-    env.assign("deg2rad", Calculator::RuntimeValue(std::make_shared<Calculator::Function>([](const Calculator::Args& args, auto& env) {
-	auto deg = args[0].as_number();
-	return deg * PI / 180.0;
-    },
-			      1)));
-    env.assign("rad2deg", Calculator::RuntimeValue(std::make_shared<Calculator::Function>([](const Calculator::Args& args, auto& env) {
-	auto rad = args[0].as_number();
-	return rad * 180.0 / PI;
-    },
-			      1)));
-    env.assign("exit", Calculator::RuntimeValue(std::make_shared<Calculator::VoidFunction>([](const Calculator::Args& args, auto& env) {
-	auto code = args[0].as_number();
-	exit(static_cast<int>(code));
-    },
-			   1)));
-    env.assign("PI", PI);
-
+    Calculator::inject_import_function(env);
+    Calculator::inject_math_functions(env);
+    Calculator::inject_stdlib_functions(env);
     if (argc == 1) {
 	run_from_cli(env);
     } else
