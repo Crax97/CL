@@ -4,6 +4,7 @@
 #include "environment.hpp"
 #include "nodes.hpp"
 #include "stack_based_evaluator.hpp"
+#include "string_visitor.hpp"
 #include "value.hpp"
 
 namespace Calculator {
@@ -49,6 +50,21 @@ public:
     }
     RuntimeValue call(Args& args, Env<RuntimeValue>& env) override;
     uint8_t arity() override { return m_arg_names.size(); }
+    std::string string_repr() const noexcept override
+    {
+	DebugPrinterEvaluator eval;
+	std::string name_string = "";
+	for (const auto& name : m_arg_names) {
+	    name_string += name + ", ";
+	}
+
+	if (name_string.length() > 2) {
+	    name_string.pop_back();
+	    name_string.pop_back();
+	}
+	m_body->evaluate(eval);
+	return "fun( " + name_string + " ) -> " + eval.get_result();
+    }
 };
 
 }

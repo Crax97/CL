@@ -3,6 +3,8 @@
 #include "commons.hpp"
 #include "value.hpp"
 
+#include <sstream>
+
 namespace Calculator {
 class VoidFunction : public Callable {
 private:

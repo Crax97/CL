@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <variant>
 #include <vector>
@@ -19,6 +20,15 @@ class Callable {
 public:
     virtual RuntimeValue call(Args& args, Env<RuntimeValue>& env) = 0;
     virtual uint8_t arity() = 0;
+    virtual std::string to_string() const noexcept
+    {
+	std::stringstream sstream;
+	sstream << "Function @0x" << std::hex;
+	uint64_t addr = reinterpret_cast<uint64_t>(this);
+	sstream << addr;
+	return sstream.str();
+    }
+    virtual std::string string_repr() const noexcept { return to_string(); }
 };
 
 using RawValue = std::variant<std::monostate, Number, String, CallablePtr>;

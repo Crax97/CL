@@ -32,10 +32,7 @@ struct StringVisitor {
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
     std::string operator()(const CallablePtr& call)
     {
-	std::stringstream str;
-	uint64_t address = reinterpret_cast<uint64_t>(&(*call));
-	str << "Function <0x" << std::hex << address << ">";
-	return str.str();
+	return call->to_string();
     }
     std::string operator()(const String& str)
     {
@@ -49,7 +46,7 @@ struct StringRepresentationVisitor {
     {
 	return std::to_string(v);
     }
-    std::string operator()(const CallablePtr& call) { return StringVisitor()(call); }
+    std::string operator()(const CallablePtr& call) { return call->string_repr(); }
     std::string operator()(const String& str) { return "\"" + str + "\""; }
 };
 

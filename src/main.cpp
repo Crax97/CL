@@ -22,9 +22,9 @@
 void run_script(const std::string& script_path, Calculator::Env<Calculator::RuntimeValue>& env)
 {
     std::ifstream file(script_path);
-    std::string content;
-    while (!file.eof()) {
-	content += file.get();
+    std::string content, line;
+    while (std::getline(file, line)) {
+	content += line + "\n";
     }
 
     auto parser = Calculator::Parser(Calculator::Lexer(content));
@@ -33,7 +33,6 @@ void run_script(const std::string& script_path, Calculator::Env<Calculator::Runt
     std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
 	ptr->evaluate(evaluator);
     });
-    std::cout << evaluator.get_result().to_string() << "\n";
 }
 
 void run_from_cli(Calculator::Env<Calculator::RuntimeValue>& env)

@@ -32,12 +32,12 @@ void DebugPrinterEvaluator::visit_binary_expression(const ExprPtr& left, BinaryO
 {
     left->evaluate(*this);
     right->evaluate(*this);
-    push(pop() + binary_op_to_string(op) + pop());
+    push(pop() + " " + binary_op_to_string(op) + " " + pop());
 }
 void DebugPrinterEvaluator::visit_unary_expression(UnaryOp op, const ExprPtr& expr)
 {
     expr->evaluate(*this);
-    push(unary_op_to_string(op) + " " + pop());
+    push(unary_op_to_string(op) + pop());
 }
 void DebugPrinterEvaluator::visit_var_expression(const std::string& var)
 {
@@ -75,7 +75,7 @@ void DebugPrinterEvaluator::visit_block_expression(const ExprList& block)
 	expr->evaluate(*this);
 	result.append(pop());
     });
-    push("\n" + get_tabs() + "{ " + result + " }\n");
+    push(get_tabs() + "{\n " + result + "\n}");
 }
 void DebugPrinterEvaluator::visit_return_expression(const ExprPtr& expr)
 {
@@ -92,7 +92,7 @@ void DebugPrinterEvaluator::visit_if_expression(const ExprPtr& cond, const ExprP
     if (else_branch) {
 	else_branch->evaluate(*this);
 	auto else_str = pop();
-	result += " else " + else_str;
+	result += "\n else " + else_str;
     }
     push(result);
 }

@@ -64,8 +64,14 @@ void inject_stdlib_functions(Env<RuntimeValue>& env)
     },
 	VAR_ARGS);
 
+    static auto repr_impl = std::make_shared<Function>([](const Args& args, const auto& _env) {
+	return args[0].string_representation();
+    },
+	1);
+
     env.assign("input", RuntimeValue(input_impl));
     env.assign("print", RuntimeValue(print_impl));
+    env.assign("repr", RuntimeValue(repr_impl));
 }
 void inject_math_functions(Env<RuntimeValue>& env)
 {
