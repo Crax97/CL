@@ -8,6 +8,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -36,6 +37,7 @@ using RawValue = std::variant<std::monostate, Number, String, CallablePtr>;
 class RuntimeValue {
 private:
     RawValue m_value;
+    std::map<std::string, RuntimeValue> m_map;
 
 public:
     Number as_number() const;
@@ -71,6 +73,9 @@ public:
     bool operator>(const RuntimeValue& other) const;
     bool operator<=(const RuntimeValue& other) const;
     bool operator>=(const RuntimeValue& other) const;
+
+    void set_property(const std::string& name, RuntimeValue val) { m_map[name] = val; }
+    RuntimeValue& get_property(const std::string& name) { return m_map[name]; }
 
     RawValue& raw_value();
 

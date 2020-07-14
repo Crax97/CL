@@ -155,6 +155,20 @@ void ASTEvaluator::visit_return_expression(const ExprPtr& expr)
 {
     TODO();
 }
+void ASTEvaluator::visit_set_expression(const ExprPtr& obj, const std::string& name, const ExprPtr& val)
+{
+    val->evaluate(*this);
+    obj->evaluate(*this);
+    auto m_val = pop();
+
+    pop().set_property(name, m_val);
+}
+void ASTEvaluator::visit_get_expression(const ExprPtr& obj, const std::string& name)
+{
+    obj->evaluate(*this);
+    push(pop().get_property(name));
+}
+
 void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_branch, const ExprPtr& else_branch)
 {
     cond->evaluate(*this);

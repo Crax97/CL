@@ -27,5 +27,7 @@ public:
     void visit_block_expression(const ExprList& block) override;
     void visit_return_expression(const ExprPtr& expr) override;
     void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch) override;
+    void visit_set_expression(const ExprPtr& obj, const std::string& name, const ExprPtr& val) override;
+    void visit_get_expression(const ExprPtr& obj, const std::string& name) override;
 };
 }

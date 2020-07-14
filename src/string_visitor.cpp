@@ -96,6 +96,18 @@ void DebugPrinterEvaluator::visit_if_expression(const ExprPtr& cond, const ExprP
     }
     push(result);
 }
+
+void DebugPrinterEvaluator::visit_set_expression(const ExprPtr& obj, const std::string& name, const ExprPtr& val)
+{
+    obj->evaluate(*this);
+    val->evaluate(*this);
+    push(pop() + "." + name + " = " + pop());
+}
+void DebugPrinterEvaluator::visit_get_expression(const ExprPtr& obj, const std::string& name)
+{
+    obj->evaluate(*this);
+    push(pop() + "." + name);
+}
 std::string DebugPrinterEvaluator::get_tabs() const noexcept
 {
     return std::string(m_scope, '\t');

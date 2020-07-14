@@ -23,6 +23,8 @@ public:
     virtual void visit_block_expression(const ExprList& block) = 0;
     virtual void visit_return_expression(const ExprPtr& expr) = 0;
     virtual void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch) = 0;
+    virtual void visit_set_expression(const ExprPtr& obj, const std::string& what, const ExprPtr& value) = 0;
+    virtual void visit_get_expression(const ExprPtr& obj, const std::string& what) = 0;
 };
 
 class Expression {
@@ -211,4 +213,32 @@ public:
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_return_expression(m_expr); }
 };
 
+class SetExpression : public Expression {
+private:
+    ExprPtr m_obj;
+    std::string m_name;
+    ExprPtr m_val;
+
+public:
+    SetExpression(ExprPtr obj, std::string name, ExprPtr val)
+	: m_obj(obj)
+	, m_name(name)
+	, m_val(val)
+    {
+    }
+    void evaluate(Evaluator& evaluator) const override { evaluator.visit_set_expression(m_obj, m_name, m_val); }
+};
+class GetExpression : public Expression {
+private:
+    ExprPtr m_obj;
+    std::string m_name;
+
+public:
+    GetExpression(ExprPtr obj, std::string name)
+	: m_obj(obj)
+	, m_name(name)
+    {
+    }
+    void evaluate(Evaluator& evaluator) const override { evaluator.visit_get_expression(m_obj, m_name); }
+};
 } // namespace Calculator
