@@ -5,7 +5,7 @@
 
 #include <cstdlib>
 #include <map>
-#include <string>
+#include <sstream>
 #include <string_view>
 
 namespace Calculator {
@@ -13,20 +13,9 @@ class LexerException : public CLException {
 private:
     static std::string generate_nice_error(std::string_view error_message, std::string_view source_line, uint16_t line, uint16_t column)
     {
-	auto str = std::string("On line " + std::to_string(line) + ":" + std::to_string(column) + "\n");
-	str.append(source_line);
-	str.push_back('\n');
-	for (size_t i = 0; i < column; i++) {
-	    str.push_back('-');
-	}
-	str.push_back('^');
-	for (size_t i = column + 1; i < source_line.size(); i++) {
-	    str.push_back('-');
-	}
-	str.push_back('\n');
-	str.append(error_message);
-	str.push_back('\n');
-	return str;
+	std::stringstream sstream;
+	sstream << "Lexing error " << error_message;
+	return sstream.str();
     }
 
 public:
@@ -64,6 +53,9 @@ char Lexer::advance_stream()
 {
     auto ch = *m_current_character++;
     update_col_and_line(ch);
+    if (m_current_character == m_source.cend()) {
+	m_done_lexing = true;
+    }
     return ch;
 }
 char Lexer::peek_character()
@@ -205,33 +197,31 @@ Token Lexer::parse_keyword()
 void Lexer::ignore_comment()
 {
     char ch = advance_stream();
-    while (ch != '\n') {
+    while (ch != '\n' && !m_done_lexing) {
 	ch = advance_stream();
     }
 }
 
 Token Lexer::try_lex_one()
 {
-    if (m_current_character == m_source.end()) {
-	if (m_done_lexing)
-	    throw LexerException("Tried to lex on an empty stream!", m_current_source_line, m_current_column, m_current_line);
-	m_done_lexing = true;
-	return make_token(TokenType::Eof);
-    }
+    if (m_done_lexing)
+	throw LexerException("Tried to lex on an empty stream!", m_current_source_line, m_current_column, m_current_line);
 
     auto ch = ' ';
 
     do {
 	ch = advance_stream();
-    } while (IGNORE_CHARS.find(ch) != std::string::npos);
+	while (ch == '#') {
+	    ignore_comment();
+	    ch = advance_stream();
+	}
+    } while (IGNORE_CHARS.find(ch) != std::string::npos && !m_done_lexing);
 
+    if (m_done_lexing) {
+	return make_token(TokenType::Eof);
+    }
     auto token_column = m_current_column;
     auto token_line = m_current_line;
-
-    if (ch == '#') {
-	ignore_comment();
-	ch = advance_stream();
-    }
 
     switch (ch) {
     case '+':
