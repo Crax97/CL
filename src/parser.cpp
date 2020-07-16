@@ -331,13 +331,39 @@ ExprPtr Parser::unary()
 	auto type = token.get_type();
 	return std::make_unique<UnaryExpression>(std::move(expr), token_type_to_unary_opcode(type));
     }
-    auto left_expr = assign();
+    auto left_expr = call();
     return left_expr;
+}
+ExprList Parser::get_arguments()
+{
+    ExprList list;
+    consume(TokenType::Left_Brace);
+    while (!match(TokenType::Right_Brace)) {
+	list.push_back(expression());
+	if (match(TokenType::Comma)) {
+	    consume(TokenType::Comma);
+	}
+    }
+    consume(TokenType::Right_Brace);
+    return list;
+}
+
+ExprPtr Parser::call()
+{
+    auto left = assign();
+    while (match(TokenType::Left_Brace)) {
+	ExprList args = get_arguments();
+
+	left = std::make_unique<FunCallExpression>(
+	    std::move(left),
+	    std::move(args));
+    }
+    return left;
 }
 
 ExprPtr Parser::assign()
 {
-    auto expr = call();
+    auto expr = literal();
     if (match(TokenType::Dot)) {
 	while (match(TokenType::Dot)) {
 	    consume(TokenType::Dot);
@@ -366,32 +392,6 @@ ExprPtr Parser::assign()
     return expr;
 }
 
-ExprList Parser::get_arguments()
-{
-    ExprList list;
-    consume(TokenType::Left_Brace);
-    while (!match(TokenType::Right_Brace)) {
-	list.push_back(expression());
-	if (match(TokenType::Comma)) {
-	    consume(TokenType::Comma);
-	}
-    }
-    consume(TokenType::Right_Brace);
-    return list;
-}
-
-ExprPtr Parser::call()
-{
-    auto left = literal();
-    while (match(TokenType::Left_Brace)) {
-	ExprList args = get_arguments();
-
-	left = std::make_unique<FunCallExpression>(
-	    std::move(left),
-	    std::move(args));
-    }
-    return left;
-}
 ExprPtr Parser::literal()
 {
     auto next_token = peek();
