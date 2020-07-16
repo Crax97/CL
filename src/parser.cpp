@@ -83,7 +83,7 @@ public:
     }
 };
 
-Parser::Parser(Lexer& lexer)
+Parser::Parser(Lexer lexer)
     : m_lexer(lexer)
     , m_current_token(0)
 {
@@ -131,11 +131,10 @@ Token Parser::next()
 
 Token& Parser::peek()
 {
-    if (m_lexer.has_tokens()) {
+    if (m_current_token == m_parsed_tokens.size()) {
 	auto token = m_lexer.next();
 	m_parsed_tokens.push_back(token);
     }
-
     return m_parsed_tokens[m_current_token];
 }
 
@@ -339,7 +338,6 @@ ExprPtr Parser::unary()
 ExprPtr Parser::assign()
 {
     auto expr = call();
-#if 0
     if (match(TokenType::Dot)) {
 	while (match(TokenType::Dot)) {
 	    consume(TokenType::Dot);
@@ -353,7 +351,6 @@ ExprPtr Parser::assign()
 	}
 	return expr;
     }
-#endif
     while (match(TokenType::Assign)) {
 	auto prev = previous();
 	next();

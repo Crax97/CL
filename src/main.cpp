@@ -27,8 +27,7 @@ void run_script(const std::string& script_path, Calculator::Env<Calculator::Runt
 	content += line + "\n";
     }
 
-    auto lexer = Calculator::Lexer(content);
-    auto parser = Calculator::Parser(lexer);
+    auto parser = Calculator::Parser(Calculator::Lexer(content));
     auto tree = parser.parse_all();
     auto evaluator = Calculator::ASTEvaluator(env);
     std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
@@ -42,8 +41,7 @@ void run_from_cli(Calculator::Env<Calculator::RuntimeValue>& env)
     std::cout << "> ";
     while (std::getline(std::cin, line)) {
 	try {
-	    auto lexer = Calculator::Lexer(line);
-	    auto parser = Calculator::Parser(lexer);
+	    auto parser = Calculator::Parser(Calculator::Lexer(line));
 	    auto tree = parser.parse_all();
 	    auto evaluator = Calculator::ASTEvaluator(env);
 	    if (tree.size() > 0) {

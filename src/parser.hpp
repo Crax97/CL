@@ -43,7 +43,7 @@ class Parser {
 private:
     std::vector<Token> m_parsed_tokens;
     size_t m_current_token;
-    Lexer& m_lexer;
+    Lexer m_lexer;
 
     template <typename T, typename... Tokens>
     bool match(T t, Tokens... ts);
@@ -81,7 +81,7 @@ private:
     void throw_exception(const std::string& why, const Token& cause);
 
 public:
-    Parser(Lexer& lexer);
+    Parser(Lexer lexer);
 
     ExprList parse_all();
 };

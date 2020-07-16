@@ -91,7 +91,7 @@ void Lexer::update_line_view()
 	next_newline = std::distance(m_current_character, m_source.cend());
     }
     auto size = next_newline - begin;
-    m_current_source_line = std::string_view(m_source.data() + begin, size);
+    m_current_source_line = m_source.substr(begin, size);
 }
 
 template <class... T>

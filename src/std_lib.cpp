@@ -32,8 +32,7 @@ void inject_import_function(Env<RuntimeValue>& env)
 		content += line;
 	    }
 
-	    auto lexer = Lexer(content);
-	    auto parser = Parser(lexer);
+	    auto parser = Parser(Lexer(content));
 	    auto tree = parser.parse_all();
 	    ASTEvaluator evaluator(env);
 
