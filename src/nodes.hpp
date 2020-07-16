@@ -23,8 +23,8 @@ public:
     virtual void visit_block_expression(const ExprList& block) = 0;
     virtual void visit_return_expression(const ExprPtr& expr) = 0;
     virtual void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch) = 0;
-    virtual void visit_set_expression(const ExprPtr& obj, const std::string& what, const ExprPtr& value) = 0;
-    virtual void visit_get_expression(const ExprPtr& obj, const std::string& what) = 0;
+    virtual void visit_set_expression(const ExprPtr& obj, const ExprPtr& what, const ExprPtr& value) = 0;
+    virtual void visit_get_expression(const ExprPtr& obj, const ExprPtr& what) = 0;
 };
 
 class Expression {
@@ -216,11 +216,11 @@ public:
 class SetExpression : public Expression {
 private:
     ExprPtr m_obj;
-    std::string m_name;
+    ExprPtr m_name;
     ExprPtr m_val;
 
 public:
-    SetExpression(ExprPtr obj, std::string name, ExprPtr val)
+    SetExpression(ExprPtr obj, ExprPtr name, ExprPtr val)
 	: m_obj(obj)
 	, m_name(name)
 	, m_val(val)
@@ -231,10 +231,10 @@ public:
 class GetExpression : public Expression {
 private:
     ExprPtr m_obj;
-    std::string m_name;
+    ExprPtr m_name;
 
 public:
-    GetExpression(ExprPtr obj, std::string name)
+    GetExpression(ExprPtr obj, ExprPtr name)
 	: m_obj(obj)
 	, m_name(name)
     {

@@ -97,16 +97,18 @@ void DebugPrinterEvaluator::visit_if_expression(const ExprPtr& cond, const ExprP
     push(result);
 }
 
-void DebugPrinterEvaluator::visit_set_expression(const ExprPtr& obj, const std::string& name, const ExprPtr& val)
+void DebugPrinterEvaluator::visit_set_expression(const ExprPtr& obj, const ExprPtr& name, const ExprPtr& val)
 {
     obj->evaluate(*this);
+    name->evaluate(*this);
     val->evaluate(*this);
-    push(pop() + "." + name + " = " + pop());
+    push(pop() + "[" + pop() + "] = " + pop());
 }
-void DebugPrinterEvaluator::visit_get_expression(const ExprPtr& obj, const std::string& name)
+void DebugPrinterEvaluator::visit_get_expression(const ExprPtr& obj, const ExprPtr& name)
 {
     obj->evaluate(*this);
-    push(pop() + "." + name);
+    name->evaluate(*this);
+    push(pop() + "[" + pop() + "]");
 }
 std::string DebugPrinterEvaluator::get_tabs() const noexcept
 {

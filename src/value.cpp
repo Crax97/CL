@@ -30,6 +30,19 @@ struct NegateVisitor {
 struct StringVisitor {
     std::string operator()(const std::monostate v) { return "null"; }
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
+    std::string operator()(const dict_tag& tag)
+    {
+	std::stringstream str;
+	str << "Dict { \n";
+#if 0
+	for (const auto& couple : m_map) {
+	    str << couple.first << " : " << couple.second << ",\n";
+	}
+#endif
+	str << "}";
+	return str.str();
+    }
+
     std::string operator()(const CallablePtr& call)
     {
 	return call->to_string();
@@ -46,6 +59,7 @@ struct StringRepresentationVisitor {
     {
 	return std::to_string(v);
     }
+    std::string operator()(const dict_tag& s) { return "{}"; }
     std::string operator()(const CallablePtr& call) { return call->string_repr(); }
     std::string operator()(const String& str) { return "\"" + str + "\""; }
 };

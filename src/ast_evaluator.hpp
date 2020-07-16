@@ -28,8 +28,8 @@ private:
 
     void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch)
 	override;
-    void visit_set_expression(const ExprPtr& obj, const std::string& name, const ExprPtr& val) override;
-    void visit_get_expression(const ExprPtr& obj, const std::string& name) override;
+    void visit_set_expression(const ExprPtr& obj, const ExprPtr& name, const ExprPtr& val) override;
+    void visit_get_expression(const ExprPtr& obj, const ExprPtr& name) override;
 
 public:
     ASTEvaluator(Env<RuntimeValue>& env)

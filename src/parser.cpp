@@ -4,6 +4,7 @@
 #include "nodes.hpp"
 #include "tokens.hpp"
 #include "value.hpp"
+#include <memory>
 #include <sstream>
 
 namespace Calculator {
@@ -338,6 +339,21 @@ ExprPtr Parser::unary()
 ExprPtr Parser::assign()
 {
     auto expr = call();
+#if 0
+    if (match(TokenType::Dot)) {
+	while (match(TokenType::Dot)) {
+	    consume(TokenType::Dot);
+	    auto next = consume(TokenType::Identifier).get<std::string>();
+	    if (match(TokenType::Assign)) {
+		consume(TokenType::Assign);
+		expr = std::make_unique<SetExpression>(expr, std::make_unique<StringExpression>(next), expression());
+	    } else {
+		expr = std::make_unique<GetExpression>(expr, std::make_unique<StringExpression>(next));
+	    }
+	}
+	return expr;
+    }
+#endif
     while (match(TokenType::Assign)) {
 	auto prev = previous();
 	next();

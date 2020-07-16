@@ -306,7 +306,7 @@ void Lexer::lex_all()
 
 bool Lexer::has_tokens() const noexcept
 {
-    return m_parsed_tokens.size() > 0;
+    return m_parsed_tokens.size() > 0 || !m_done_lexing;
 }
 
 bool Lexer::is_at_end() noexcept

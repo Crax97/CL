@@ -2,9 +2,11 @@
 
 #include <functional>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
 #define TODO()                                                                 \
     {                                                                          \
 	std::cerr << "TODO Reached on file " << std::string(__FILE__) << "\n"; \
@@ -25,6 +27,7 @@ class Expression;
 
 using Number = double;
 using String = std::string;
+using Dict = std::map<RuntimeValue, RuntimeValue>;
 using Args = std::vector<RuntimeValue>;
 using Names = std::vector<std::string>;
 using ExprPtr = std::shared_ptr<Expression>;

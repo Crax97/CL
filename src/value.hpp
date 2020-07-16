@@ -17,6 +17,9 @@ class RuntimeValue;
 
 constexpr uint8_t VAR_ARGS = 0xFF;
 
+struct dict_tag {
+};
+
 class Callable {
 public:
     virtual RuntimeValue call(Args& args, Env<RuntimeValue>& env) = 0;
@@ -32,17 +35,20 @@ public:
     virtual std::string string_repr() const noexcept { return to_string(); }
 };
 
-using RawValue = std::variant<std::monostate, Number, String, CallablePtr>;
+using RawValue = std::variant<std::monostate, Number, String, dict_tag, CallablePtr>;
 
 class RuntimeValue {
 private:
     RawValue m_value;
-    std::map<std::string, RuntimeValue> m_map;
+    Dict m_map;
+    RuntimeValue(dict_tag tag)
+	: m_value(tag)
+    {
+    }
 
 public:
     Number as_number() const;
     CallablePtr as_callable() const;
-
     bool is_truthy() const noexcept;
     bool is_null() const noexcept;
     bool is_number() const noexcept;
@@ -74,13 +80,17 @@ public:
     bool operator<=(const RuntimeValue& other) const;
     bool operator>=(const RuntimeValue& other) const;
 
-    void set_property(const std::string& name, RuntimeValue val) { m_map[name] = val; }
-    RuntimeValue& get_property(const std::string& name) { return m_map[name]; }
+    void set_property(const RuntimeValue& name, RuntimeValue val) { m_map[name] = val; }
+    void set_named(const std::string& name, RuntimeValue val) { set_property(RuntimeValue(name), val); }
+    RuntimeValue& get_property(const RuntimeValue& name) { return m_map[name]; }
+    RuntimeValue& get_named(const std ::string& name) { return m_map[RuntimeValue(name)]; }
 
     RawValue& raw_value();
 
     std::string to_string() const noexcept;
     std::string string_representation() const noexcept;
+
+    static RuntimeValue make_dict() { return RuntimeValue(dict_tag()); }
 
     RuntimeValue(Number n) noexcept
 	: m_value(n)
@@ -88,6 +98,11 @@ public:
     }
     RuntimeValue(String s) noexcept
 	: m_value(s)
+    {
+    }
+    RuntimeValue(Dict s) noexcept
+	: m_value(dict_tag())
+	, m_map(s)
     {
     }
     RuntimeValue(CallablePtr c) noexcept
