@@ -82,7 +82,7 @@ public:
     }
 };
 
-Parser::Parser(Lexer lexer)
+Parser::Parser(Lexer& lexer)
     : m_lexer(lexer)
     , m_current_token(0)
 {
@@ -95,7 +95,8 @@ bool Parser::match(T t, Tokens... ts)
 }
 bool Parser::match(TokenType type)
 {
-    return peek().get_type() == type;
+    auto& p = peek();
+    return p.get_type() == type;
 }
 
 template <typename T, typename... Tokens>
@@ -129,7 +130,7 @@ Token Parser::next()
 
 Token& Parser::peek()
 {
-    if (m_current_token == m_parsed_tokens.size() && !m_lexer.is_at_end()) {
+    if (m_lexer.has_tokens()) {
 	auto token = m_lexer.next();
 	m_parsed_tokens.push_back(token);
     }

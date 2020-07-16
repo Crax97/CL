@@ -47,5 +47,6 @@ public:
     Token& peek();
     void lex_all();
     bool is_at_end() noexcept;
+    bool has_tokens() const noexcept;
 };
 } // namespace CL

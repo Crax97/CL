@@ -27,7 +27,8 @@ void run_script(const std::string& script_path, Calculator::Env<Calculator::Runt
 	content += line + "\n";
     }
 
-    auto parser = Calculator::Parser(Calculator::Lexer(content));
+    auto lexer = Calculator::Lexer(content);
+    auto parser = Calculator::Parser(lexer);
     auto tree = parser.parse_all();
     auto evaluator = Calculator::ASTEvaluator(env);
     std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
@@ -41,13 +42,16 @@ void run_from_cli(Calculator::Env<Calculator::RuntimeValue>& env)
     std::cout << "> ";
     while (std::getline(std::cin, line)) {
 	try {
-	    auto parser = Calculator::Parser(Calculator::Lexer(line));
+	    auto lexer = Calculator::Lexer(line);
+	    auto parser = Calculator::Parser(lexer);
 	    auto tree = parser.parse_all();
 	    auto evaluator = Calculator::ASTEvaluator(env);
-	    std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
-		ptr->evaluate(evaluator);
-	    });
-	    std::cout << evaluator.get_result().to_string() << "\n";
+	    if (tree.size() > 0) {
+		std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
+		    ptr->evaluate(evaluator);
+		});
+		std::cout << evaluator.get_result().to_string() << "\n";
+	    }
 	    std::cout << "> ";
 	} catch (Calculator::CLException& ex) {
 	    std::cerr << "Error: " << ex.get_message() << "\n";

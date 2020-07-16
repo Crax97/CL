@@ -154,5 +154,4 @@ std::string Token::to_string() const noexcept
     }
     return str;
 }
-TokenType Token::get_type() const noexcept { return m_type; }
 } // namespace CL
