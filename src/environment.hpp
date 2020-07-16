@@ -15,18 +15,18 @@ public:
     virtual T& get(const std::string&) = 0;
 };
 
-class StackedEnvironment : public Env<RuntimeValue> {
+class StackedEnvironment : public Env<RuntimeValuePtr> {
 private:
-    using Scope = std::unordered_map<std::string, RuntimeValue>;
+    using Scope = std::unordered_map<std::string, RuntimeValuePtr>;
     std::vector<Scope> m_scopes;
-    void bind_in_current_scope(const std::string&, RuntimeValue);
-    RuntimeValue& get_from_current(const std::string&);
+    void bind_in_current_scope(const std::string&, RuntimeValuePtr);
+    RuntimeValuePtr& get_from_current(const std::string&);
 
 public:
     explicit StackedEnvironment();
     void scope_in() override;
     void scope_out() override;
-    void assign(const std::string&, RuntimeValue) override;
-    RuntimeValue& get(const std::string&) override;
+    void assign(const std::string&, RuntimeValuePtr) override;
+    RuntimeValuePtr& get(const std::string&) override;
 };
 }

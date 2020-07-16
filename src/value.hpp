@@ -22,7 +22,7 @@ struct dict_tag {
 
 class Callable {
 public:
-    virtual RuntimeValue call(Args& args, Env<RuntimeValue>& env) = 0;
+    virtual RuntimeValue call(Args& args, RuntimeEnv& env) = 0;
     virtual uint8_t arity() = 0;
     virtual std::string to_string() const noexcept
     {
@@ -65,6 +65,9 @@ public:
 	}
 	throw RuntimeException(to_string() + " is not " + typeid(T).name());
     }
+
+    template <class T>
+    static RuntimeValuePtr make(T arg) { return std::make_shared<RuntimeValue>(arg); }
     void negate();
     RuntimeValue operator+(const RuntimeValue& other);
     RuntimeValue operator-(const RuntimeValue& other);

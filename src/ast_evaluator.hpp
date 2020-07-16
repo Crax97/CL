@@ -8,9 +8,9 @@
 #include "value.hpp"
 
 namespace Calculator {
-class ASTEvaluator : public StackMachine<RuntimeValue>, public Evaluator {
+class ASTEvaluator : public StackMachine<RuntimeValuePtr>, public Evaluator {
 private:
-    Env<RuntimeValue>& m_env;
+    RuntimeEnv& m_env;
     void visit_number_expression(Number n) override;
     void visit_string_expression(String s) override;
     void visit_and_expression(const ExprPtr& left, const ExprPtr& right) override;
@@ -32,12 +32,12 @@ private:
     void visit_get_expression(const ExprPtr& obj, const ExprPtr& name) override;
 
 public:
-    ASTEvaluator(Env<RuntimeValue>& env)
+    ASTEvaluator(RuntimeEnv& env)
 	: m_env(env)
     {
     }
     RuntimeValue run_expression(const ExprPtr& body);
-    RuntimeValue get_result() { return pop(); }
+    RuntimeValue get_result() { return *pop(); }
 };
 class ASTFunction : public Callable {
 private:
@@ -50,7 +50,7 @@ public:
 	, m_arg_names(names)
     {
     }
-    RuntimeValue call(Args& args, Env<RuntimeValue>& env) override;
+    RuntimeValue call(Args& args, RuntimeEnv& env) override;
     uint8_t arity() override { return m_arg_names.size(); }
     std::string string_repr() const noexcept override
     {
