@@ -69,9 +69,14 @@ void inject_stdlib_functions(RuntimeEnv& env)
     },
 	1);
 
+    static auto dict_impl = std::make_shared<Function>([](const Args& args, const auto& _env) {
+	return RuntimeValue::make_dict();
+    },
+	VAR_ARGS);
     env.assign("input", RuntimeValue::make(input_impl));
     env.assign("print", RuntimeValue::make(print_impl));
     env.assign("repr", RuntimeValue::make(repr_impl));
+    env.assign("dict", RuntimeValue::make(dict_impl));
 }
 void inject_math_functions(RuntimeEnv& env)
 {

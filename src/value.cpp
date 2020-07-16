@@ -217,12 +217,28 @@ bool RuntimeValue::operator>=(const RuntimeValue& other) const
 
 std::string RuntimeValue::to_string() const noexcept
 {
-    return std::visit(StringVisitor {}, m_value);
+    // Ew hacks
+    if (!std::holds_alternative<dict_tag>(m_value)) {
+	return std::visit(StringVisitor {}, m_value);
+    } else {
+	return "Dict " + string_representation();
+    }
 }
 
 std::string RuntimeValue::string_representation() const noexcept
 {
-    return std::visit(StringRepresentationVisitor {}, m_value);
+    // Ew hacks
+    if (!std::holds_alternative<dict_tag>(m_value)) {
+	return std::visit(StringRepresentationVisitor {}, m_value);
+    } else {
+	std::stringstream sstr;
+	sstr << "{\n";
+	for (const auto& entries : m_map) {
+	    sstr << "\t" << entries.first.to_string() << " : " << entries.second.to_string() << ",\n";
+	}
+	sstr << "}";
+	return sstr.str();
+    }
 }
 
 RawValue& RuntimeValue::raw_value() { return m_value; }
