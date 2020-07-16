@@ -18,8 +18,7 @@ namespace Calculator {
 
 void inject_import_function(RuntimeEnv& env)
 {
-    // TODO: Change to Function when modules are ready
-    static auto import_impl = std::make_shared<VoidFunction>(
+    static auto import_impl = std::make_shared<Function>(
 	[](const Args& args, auto& env) {
 	    String path = args[0]->as<String>();
 	    auto file = std::fstream(path);
@@ -39,6 +38,7 @@ void inject_import_function(RuntimeEnv& env)
 	    for (const auto& expr : tree) {
 		evaluator.run_expression(expr);
 	    }
+	    return evaluator.get_result();
 	},
 	1);
     env.assign("import", RuntimeValue::make(import_impl));
