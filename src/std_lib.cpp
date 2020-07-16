@@ -106,7 +106,8 @@ void inject_math_functions(RuntimeEnv& env)
     dict_object->set_named("cos", RuntimeValue(cos_impl));
     dict_object->set_named("deg2rad", RuntimeValue(deg2rad_impl));
     dict_object->set_named("rad2deg", RuntimeValue(rad2deg_impl));
-    env.assign("PI", RuntimeValue::make(PI));
-    env.assign("Math", dict_object);
+    dict_object->set_named("PI", PI);
+    dict_object->mark_constant();
+    env.assign("Math", dict_object, true);
 }
 };

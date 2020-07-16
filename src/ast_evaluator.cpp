@@ -106,7 +106,7 @@ void ASTEvaluator::visit_assign_expression(const std::string& name, const ExprPt
 {
     value->evaluate(*this);
     auto val = pop();
-    m_env.assign(name, val);
+    m_env.assign(name, val, false);
     push(val);
 }
 void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
@@ -189,7 +189,7 @@ void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_br
 RuntimeValue ASTFunction::call(Args& args, RuntimeEnv& env)
 {
     for (size_t i = 0; i < args.size(); i++) {
-	env.assign(m_arg_names[i], args[i]);
+	env.assign(m_arg_names[i], args[i], false);
     }
     ASTEvaluator evaluator(env);
     return evaluator.run_expression(m_body);

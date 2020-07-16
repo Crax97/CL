@@ -42,8 +42,13 @@ void StackedEnvironment::scope_out()
     m_scopes.pop_back();
 }
 
-void StackedEnvironment::assign(const std::string& name, RuntimeValuePtr val)
+void StackedEnvironment::assign(const std::string& name, RuntimeValuePtr val, bool is_const)
 {
+    if (m_consts.find(name) != m_consts.end()) {
+	throw RuntimeException("Cannot assign to " + name + ": it is constant.");
+    } else if (is_const) {
+	m_consts.insert(name);
+    }
     bind_in_current_scope(name, val);
 }
 RuntimeValuePtr& StackedEnvironment::get(const std::string& name)

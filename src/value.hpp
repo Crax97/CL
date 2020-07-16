@@ -40,6 +40,7 @@ using RawValue = std::variant<std::monostate, Number, String, dict_tag, Callable
 class RuntimeValue {
 private:
     RawValue m_value;
+    bool m_constant { false };
     Dict m_map;
     RuntimeValue(dict_tag tag)
 	: m_value(tag)
@@ -83,7 +84,14 @@ public:
     bool operator<=(const RuntimeValue& other) const;
     bool operator>=(const RuntimeValue& other) const;
 
-    void set_property(const RuntimeValue& name, RuntimeValue val) { m_map[name] = val; }
+    void mark_constant(bool value = true) noexcept { m_constant = value; }
+    void set_property(const RuntimeValue& name, RuntimeValue val)
+    {
+	if (m_constant) {
+	    throw RuntimeException("Cannot modify this object, as it's marked constant");
+	}
+	m_map[name] = val;
+    }
     void set_named(const std::string& name, RuntimeValue val) { set_property(RuntimeValue(name), val); }
     RuntimeValue& get_property(const RuntimeValue& name) { return m_map[name]; }
     RuntimeValue& get_named(const std ::string& name) { return m_map[RuntimeValue(name)]; }
