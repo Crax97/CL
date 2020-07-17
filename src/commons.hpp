@@ -26,6 +26,7 @@ class Callable;
 class Expression;
 using RuntimeValuePtr = std::shared_ptr<RuntimeValue>;
 using RuntimeEnv = Env<RuntimeValuePtr>;
+using RuntimeEnvPtr = std::shared_ptr<RuntimeEnv>;
 
 using Number = double;
 using String = std::string;
@@ -35,8 +36,8 @@ using Names = std::vector<std::string>;
 using ExprPtr = std::shared_ptr<Expression>;
 using ExprList = std::vector<ExprPtr>;
 using CallablePtr = std::shared_ptr<Callable>;
-using FunctionCallback = std::function<RuntimeValue(const Args& args, RuntimeEnv& env)>;
-using VoidFunctionCallback = std::function<void(const Args& args, RuntimeEnv& env)>;
+using FunctionCallback = std::function<RuntimeValue(const Args& args)>;
+using VoidFunctionCallback = std::function<void(const Args& args)>;
 
 enum class BinaryOp {
     Multiplication,

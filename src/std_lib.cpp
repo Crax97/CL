@@ -19,7 +19,7 @@ namespace Calculator {
 void inject_import_function(RuntimeEnv& env)
 {
     static auto import_impl = std::make_shared<Function>(
-	[](const Args& args, auto& env) {
+	[](const Args& args) {
 	    String path = args[0]->as<String>();
 	    auto file = std::fstream(path);
 	    if (!file.is_open()) {
@@ -33,6 +33,7 @@ void inject_import_function(RuntimeEnv& env)
 
 	    auto parser = Parser(Lexer(content));
 	    auto tree = parser.parse_all();
+	    auto env = std::make_shared<StackedEnvironment>();
 	    ASTEvaluator evaluator(env);
 
 	    for (const auto& expr : tree) {
@@ -45,18 +46,18 @@ void inject_import_function(RuntimeEnv& env)
 }
 void inject_stdlib_functions(RuntimeEnv& env)
 {
-    static auto exit_impl = std::make_shared<Calculator::VoidFunction>([](const Calculator::Args& args, auto& env) {
+    static auto exit_impl = std::make_shared<Calculator::VoidFunction>([](const Calculator::Args& args) {
 	auto code = args[0]->as_number();
 	exit(static_cast<int>(code));
     },
 	1);
-    static auto input_impl = std::make_shared<Function>([](const auto& _args, const auto& _env) {
+    static auto input_impl = std::make_shared<Function>([](const auto& _args) {
 	String line;
 	std::getline(std::cin, line);
 	return RuntimeValue(line);
     },
 	0);
-    static auto print_impl = std::make_shared<VoidFunction>([](const Args& args, const auto& _env) {
+    static auto print_impl = std::make_shared<VoidFunction>([](const Args& args) {
 	for (const auto& arg : args) {
 	    std::cout << arg->to_string() << " ";
 	}
@@ -64,15 +65,16 @@ void inject_stdlib_functions(RuntimeEnv& env)
     },
 	VAR_ARGS);
 
-    static auto repr_impl = std::make_shared<Function>([](const Args& args, const auto& _env) {
+    static auto repr_impl = std::make_shared<Function>([](const Args& args) {
 	return args[0]->string_representation();
     },
 	1);
 
-    static auto dict_impl = std::make_shared<Function>([](const Args& args, const auto& _env) {
+    static auto dict_impl = std::make_shared<Function>([](const Args& args) {
 	return RuntimeValue::make_dict();
     },
 	VAR_ARGS);
+    env.assign("exit", RuntimeValue::make(exit_impl));
     env.assign("input", RuntimeValue::make(input_impl));
     env.assign("print", RuntimeValue::make(print_impl));
     env.assign("repr", RuntimeValue::make(repr_impl));
@@ -81,23 +83,23 @@ void inject_stdlib_functions(RuntimeEnv& env)
 void inject_math_functions(RuntimeEnv& env)
 {
     auto dict_object = RuntimeValue::make(RuntimeValue::make_dict());
-    static auto sin_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args, auto& env) {
+    static auto sin_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
 	auto num = args[0]->as_number();
 	return sin(num);
     },
 	1);
 
-    static auto cos_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args, auto& env) {
+    static auto cos_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
 	auto num = args[0]->as_number();
 	return cos(num);
     },
 	1);
-    static auto deg2rad_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args, auto& env) {
+    static auto deg2rad_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
 	auto deg = args[0]->as_number();
 	return deg * PI / 180.0;
     },
 	1);
-    static auto rad2deg_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args, auto& env) {
+    static auto rad2deg_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
 	auto rad = args[0]->as_number();
 	return rad * 180.0 / PI;
     },

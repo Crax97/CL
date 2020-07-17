@@ -1,5 +1,6 @@
 #include "ast_evaluator.hpp"
 #include "commons.hpp"
+#include "environment.hpp"
 #include "exceptions.hpp"
 #include "value.hpp"
 #include <algorithm>
@@ -100,13 +101,13 @@ void ASTEvaluator::visit_unary_expression(UnaryOp op, const ExprPtr& expr)
 }
 void ASTEvaluator::visit_var_expression(const std::string& var)
 {
-    push(m_env.get(var));
+    push(m_env->get(var));
 }
 void ASTEvaluator::visit_assign_expression(const std::string& name, const ExprPtr& value)
 {
     value->evaluate(*this);
     auto val = pop();
-    m_env.assign(name, val, false);
+    m_env->assign(name, val, false);
     push(val);
 }
 void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
@@ -126,23 +127,23 @@ void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
 	    arg->evaluate(*this);
 	    evaluated_args.push_back(pop());
 	}
-	m_env.scope_in();
-	push(std::make_shared<RuntimeValue>(callable->call(evaluated_args, m_env)));
-	m_env.scope_out();
+	push(std::make_shared<RuntimeValue>(callable->call(evaluated_args)));
     } else {
 	throw RuntimeException(call->to_string() + " is not callable.");
     }
 }
 void ASTEvaluator::visit_fun_def(const Names& names, const ExprPtr& body)
 {
-    auto fun = std::make_shared<ASTFunction>(body, names);
+    auto fun = std::make_shared<ASTFunction>(body, names, m_env);
     auto val = std::make_shared<RuntimeValue>(fun);
     push(val);
 }
 void ASTEvaluator::visit_block_expression(const ExprList& block)
 {
-    std::for_each(block.begin(), block.end(), [this](const ExprPtr& expr) {
-	expr->evaluate(*this);
+    RuntimeEnvPtr env = std::make_shared<StackedEnvironment>(m_env);
+    ASTEvaluator eval(env);
+    std::for_each(block.begin(), block.end(), [&eval](const ExprPtr& expr) {
+	expr->evaluate(eval);
     });
 }
 
@@ -187,10 +188,11 @@ void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_br
 }
 
 void ASTEvaluator::visit_module_definition(const ExprList& list) { TODO(); }
-RuntimeValue ASTFunction::call(Args& args, RuntimeEnv& env)
+RuntimeValue ASTFunction::call(Args& args)
 {
+    RuntimeEnvPtr env = std::make_shared<StackedEnvironment>(m_definition_env);
     for (size_t i = 0; i < args.size(); i++) {
-	env.assign(m_arg_names[i], args[i], false);
+	env->assign(m_arg_names[i], args[i], false);
     }
     ASTEvaluator evaluator(env);
     return evaluator.run_expression(m_body);

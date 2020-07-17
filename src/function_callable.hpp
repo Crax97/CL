@@ -18,9 +18,9 @@ public:
     {
     }
     uint8_t arity() override { return m_arity; }
-    RuntimeValue call(Args& args, RuntimeEnv& env) override
+    RuntimeValue call(Args& args) override
     {
-	m_function(args, env);
+	m_function(args);
 	return RuntimeValue();
     }
 };
@@ -36,9 +36,9 @@ public:
     {
     }
     uint8_t arity() override { return m_arity; }
-    RuntimeValue call(Args& args, RuntimeEnv& env) override
+    RuntimeValue call(Args& args) override
     {
-	return m_function(args, env);
+	return m_function(args);
     }
 };
 }

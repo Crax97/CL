@@ -10,7 +10,7 @@
 namespace Calculator {
 class ASTEvaluator : public StackMachine<RuntimeValuePtr>, public Evaluator {
 private:
-    RuntimeEnv& m_env;
+    RuntimeEnvPtr m_env;
     void visit_number_expression(Number n) override;
     void visit_string_expression(String s) override;
     void visit_and_expression(const ExprPtr& left, const ExprPtr& right) override;
@@ -33,7 +33,7 @@ private:
     void visit_module_definition(const ExprList& list) override;
 
 public:
-    ASTEvaluator(RuntimeEnv& env)
+    ASTEvaluator(RuntimeEnvPtr env)
 	: m_env(env)
     {
     }
@@ -43,15 +43,17 @@ public:
 class ASTFunction : public Callable {
 private:
     ExprPtr m_body;
+    RuntimeEnvPtr m_definition_env;
     Names m_arg_names;
 
 public:
-    ASTFunction(ExprPtr body, Names names)
+    ASTFunction(ExprPtr body, Names names, RuntimeEnvPtr definition_env)
 	: m_body(body)
 	, m_arg_names(names)
+	, m_definition_env(definition_env)
     {
     }
-    RuntimeValue call(Args& args, RuntimeEnv& env) override;
+    RuntimeValue call(Args& args) override;
     uint8_t arity() override { return m_arg_names.size(); }
     std::string string_repr() const noexcept override
     {
