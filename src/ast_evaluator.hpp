@@ -30,6 +30,7 @@ private:
 	override;
     void visit_set_expression(const ExprPtr& obj, const ExprPtr& name, const ExprPtr& val) override;
     void visit_get_expression(const ExprPtr& obj, const ExprPtr& name) override;
+    void visit_module_definition(const ExprList& list) override;
 
 public:
     ASTEvaluator(RuntimeEnv& env)

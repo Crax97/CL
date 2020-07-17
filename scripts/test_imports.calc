@@ -1,0 +1,6 @@
+fibonacci = fun(x) -> { 1 if x <= 0 else x * fibonacci(x - 1) }
+
+dict {
+	"fibonacci" : fibonacci
+}
+

@@ -64,6 +64,7 @@ enum class TokenType {
     Eof,
     Number,
     String,
+    Module,
     Plus,
     Minus,
     Star,

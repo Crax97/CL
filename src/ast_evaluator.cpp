@@ -186,6 +186,7 @@ void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_br
     }
 }
 
+void ASTEvaluator::visit_module_definition(const ExprList& list) { TODO(); }
 RuntimeValue ASTFunction::call(Args& args, RuntimeEnv& env)
 {
     for (size_t i = 0; i < args.size(); i++) {

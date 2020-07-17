@@ -55,6 +55,7 @@ private:
     ExprPtr expression();
     ExprPtr block_expression();
     ExprPtr return_expression();
+    ExprPtr module_expression();
     ExprPtr and_expr();
     ExprPtr or_expr();
     ExprPtr bitwise();

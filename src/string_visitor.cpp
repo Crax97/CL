@@ -1,5 +1,6 @@
 #include "string_visitor.hpp"
 #include <algorithm>
+#include <sstream>
 
 namespace Calculator {
 void DebugPrinterEvaluator::visit_number_expression(Number n)
@@ -109,6 +110,18 @@ void DebugPrinterEvaluator::visit_get_expression(const ExprPtr& obj, const ExprP
     obj->evaluate(*this);
     name->evaluate(*this);
     push(pop() + "[" + pop() + "]");
+}
+
+void DebugPrinterEvaluator::visit_module_definition(const ExprList& list)
+{
+    std::stringstream str;
+    str << "module {\n";
+    for (const auto& expr : list) {
+	expr->evaluate(*this);
+	str << "\t" << pop();
+    }
+    str << "\n}";
+    push(str.str());
 }
 std::string DebugPrinterEvaluator::get_tabs() const noexcept
 {

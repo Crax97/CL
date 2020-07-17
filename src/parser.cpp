@@ -175,6 +175,8 @@ ExprPtr Parser::expression()
 	return block_expression();
     } else if (match(TokenType::Return)) {
 	return return_expression();
+    } else if (match(TokenType::Module)) {
+	return module_expression();
     }
     auto expr = and_expr();
     if (match(TokenType::If)) {
@@ -188,6 +190,18 @@ ExprPtr Parser::expression()
 	}
     }
     return expr;
+}
+
+ExprPtr Parser::module_expression()
+{
+    consume(TokenType::Module);
+    consume(TokenType::Left_Curly_Brace);
+    ExprList list;
+    while (!match(TokenType::Right_Curly_Brace)) {
+	list.push_back(expression());
+    }
+    consume(TokenType::Right_Curly_Brace);
+    return std::make_unique<ModuleExpression>(list);
 }
 
 ExprPtr Parser::block_expression()

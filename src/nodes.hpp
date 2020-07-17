@@ -25,6 +25,7 @@ public:
     virtual void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch) = 0;
     virtual void visit_set_expression(const ExprPtr& obj, const ExprPtr& what, const ExprPtr& value) = 0;
     virtual void visit_get_expression(const ExprPtr& obj, const ExprPtr& what) = 0;
+    virtual void visit_module_definition(const ExprList& exprs) = 0;
 };
 
 class Expression {
@@ -241,4 +242,18 @@ public:
     }
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_get_expression(m_obj, m_name); }
 };
+
+class ModuleExpression : public Expression {
+private:
+    ExprList m_expressions;
+
+public:
+    ModuleExpression(ExprList exprs)
+	: m_expressions(exprs)
+    {
+    }
+
+    void evaluate(Evaluator& evaluator) const override { evaluator.visit_module_definition(m_expressions); }
+};
+
 } // namespace Calculator
