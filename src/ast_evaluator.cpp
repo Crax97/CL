@@ -127,7 +127,13 @@ void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
 	    arg->evaluate(*this);
 	    evaluated_args.push_back(pop());
 	}
-	push(std::make_shared<RuntimeValue>(callable->call(evaluated_args)));
+	auto result = std::make_shared<RuntimeValue>(callable->call(evaluated_args));
+#if 0
+	if (result.has_value()) {
+		push(result.value());
+	}
+#endif
+	push(result);
     } else {
 	throw RuntimeException(call->to_string() + " is not callable.");
     }
@@ -145,6 +151,7 @@ void ASTEvaluator::visit_block_expression(const ExprList& block)
     std::for_each(block.begin(), block.end(), [&eval](const ExprPtr& expr) {
 	expr->evaluate(eval);
     });
+    push(std::make_shared<RuntimeValue>(eval.get_result()));
 }
 
 RuntimeValue ASTEvaluator::run_expression(const ExprPtr& expr)
@@ -188,6 +195,7 @@ void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_br
 }
 
 void ASTEvaluator::visit_module_definition(const ExprList& list) { TODO(); }
+
 RuntimeValue ASTFunction::call(Args& args)
 {
     RuntimeEnvPtr env = std::make_shared<StackedEnvironment>(m_definition_env);

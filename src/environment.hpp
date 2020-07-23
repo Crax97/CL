@@ -21,15 +21,16 @@ private:
     Scope m_scope;
     std::unordered_set<std::string> m_consts;
     RuntimeEnvPtr m_parent { nullptr };
-    void bind_in_current_scope(const std::string&, RuntimeValuePtr);
-    RuntimeValuePtr& get_from_current(const std::string&);
 
 public:
     StackedEnvironment(RuntimeEnvPtr parent)
 	: m_parent(parent)
     {
     }
-    explicit StackedEnvironment();
+    explicit StackedEnvironment()
+	: m_parent(nullptr)
+    {
+    }
     void assign(const std::string&, RuntimeValuePtr, bool is_const = false) override;
     RuntimeValuePtr& get(const std::string&) override;
 };

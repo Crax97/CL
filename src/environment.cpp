@@ -12,17 +12,7 @@ public:
     }
 };
 
-StackedEnvironment::StackedEnvironment()
-    : m_parent(nullptr)
-{
-}
-
-void StackedEnvironment::bind_in_current_scope(const std::string& name, RuntimeValuePtr val)
-{
-    m_scope[name] = val;
-}
-
-RuntimeValuePtr& StackedEnvironment::get_from_current(const std::string& name)
+RuntimeValuePtr& StackedEnvironment::get(const std::string& name)
 {
     if (m_scope.find(name) != m_scope.end()) {
 	return m_scope.at(name);
@@ -40,11 +30,7 @@ void StackedEnvironment::assign(const std::string& name, RuntimeValuePtr val, bo
     } else if (is_const) {
 	m_consts.insert(name);
     }
-    bind_in_current_scope(name, val);
+    m_scope[name] = val;
 }
 
-RuntimeValuePtr& StackedEnvironment::get(const std::string& name)
-{
-    return get_from_current(name);
-}
 }
