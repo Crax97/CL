@@ -20,6 +20,20 @@ constexpr uint8_t VAR_ARGS = 0xFF;
 struct dict_tag {
 };
 
+class Module {
+
+private:
+    RuntimeEnvPtr m_env;
+
+public:
+    Module(RuntimeEnvPtr env)
+	: m_env(env)
+    {
+    }
+
+    RuntimeValue& get(const std::string& what);
+};
+
 class Callable {
 public:
     virtual RuntimeValue call(Args& args) = 0;
@@ -35,7 +49,7 @@ public:
     virtual std::string string_repr() const noexcept { return to_string(); }
 };
 
-using RawValue = std::variant<std::monostate, Number, String, dict_tag, CallablePtr>;
+using RawValue = std::variant<std::monostate, Number, String, dict_tag, Module, CallablePtr>;
 
 class RuntimeValue {
 private:
@@ -93,8 +107,22 @@ public:
 	m_map[name] = val;
     }
     void set_named(const std::string& name, RuntimeValue val) { set_property(RuntimeValue(name), val); }
-    RuntimeValue& get_property(const RuntimeValue& name) { return m_map[name]; }
-    RuntimeValue& get_named(const std ::string& name) { return m_map[RuntimeValue(name)]; }
+    RuntimeValue& get_property(const RuntimeValue& name)
+    {
+	if (std::holds_alternative<Module>(m_value)) {
+	    auto as_mod = as<Module>();
+	    return as_mod.get(name.as<String>());
+	}
+	return m_map[name];
+    }
+    RuntimeValue& get_named(const std ::string& name)
+    {
+	if (std::holds_alternative<Module>(m_value)) {
+	    auto as_mod = as<Module>();
+	    return as_mod.get(name);
+	}
+	return m_map[RuntimeValue(name)];
+    }
 
     RawValue& raw_value();
 
@@ -118,6 +146,10 @@ public:
     }
     RuntimeValue(CallablePtr c) noexcept
 	: m_value(c)
+    {
+    }
+    RuntimeValue(Module m) noexcept
+	: m_value(m)
     {
     }
     RuntimeValue() noexcept

@@ -1,6 +1,8 @@
 #include "value.hpp"
 #include "commons.hpp"
+#include "environment.hpp"
 #include "exceptions.hpp"
+
 #include <cmath>
 #include <ios>
 #include <sstream>
@@ -30,6 +32,7 @@ struct NegateVisitor {
 struct StringVisitor {
     std::string operator()(const std::monostate v) { return "null"; }
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
+    std::string operator()(const Module& mod) { return "Module TODO"; }
     std::string operator()(const dict_tag& tag)
     {
 	std::stringstream str;
@@ -62,6 +65,7 @@ struct StringRepresentationVisitor {
     std::string operator()(const dict_tag& s) { return "{}"; }
     std::string operator()(const CallablePtr& call) { return call->string_repr(); }
     std::string operator()(const String& str) { return "\"" + str + "\""; }
+    std::string operator()(const Module& mod) { return "module {}\n"; }
 };
 
 struct TruthinessVisitor {
@@ -242,4 +246,5 @@ std::string RuntimeValue::string_representation() const noexcept
 }
 
 RawValue& RuntimeValue::raw_value() { return m_value; }
+RuntimeValue& Module::get(const std::string& what) { return *m_env->get(what); }
 } // namespace CL

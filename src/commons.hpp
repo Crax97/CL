@@ -24,6 +24,8 @@ class Env;
 
 class Callable;
 class Expression;
+class Module;
+
 using RuntimeValuePtr = std::shared_ptr<RuntimeValue>;
 using RuntimeEnv = Env<RuntimeValuePtr>;
 using RuntimeEnvPtr = std::shared_ptr<RuntimeEnv>;

@@ -4,6 +4,7 @@
 #include "exceptions.hpp"
 #include "value.hpp"
 #include <algorithm>
+#include <memory>
 
 namespace Calculator {
 void ASTEvaluator::visit_number_expression(Number n)
@@ -194,7 +195,15 @@ void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_br
     }
 }
 
-void ASTEvaluator::visit_module_definition(const ExprList& list) { TODO(); }
+void ASTEvaluator::visit_module_definition(const ExprList& list)
+{
+    auto env = std::make_shared<StackedEnvironment>(m_env);
+    auto evaluator = ASTEvaluator(env);
+    for (auto& expr : list) {
+	evaluator.run_expression(expr);
+    }
+    push(RuntimeValue::make(Module(env)));
+}
 
 RuntimeValue ASTFunction::call(Args& args)
 {
