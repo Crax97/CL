@@ -30,7 +30,7 @@ struct NegateVisitor {
 };
 
 struct StringVisitor {
-    std::string operator()(const std::monostate v) { return "null"; }
+    std::string operator()(const std::monostate v) { return "nool"; }
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
     std::string operator()(const Module& mod) { return "Module TODO"; }
     std::string operator()(const dict_tag& tag)
