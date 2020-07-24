@@ -14,7 +14,7 @@ protected:
     T& peek() { return m_stack.top(); }
     T pop()
     {
-	if (!m_stack.size() > 0) {
+	if (m_stack.size() == 0) {
 	    throw RuntimeException("Tried popping on an empty stack");
 	}
 	auto t = m_stack.top();

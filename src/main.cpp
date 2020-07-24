@@ -61,9 +61,9 @@ void run_from_cli(Calculator::RuntimeEnvPtr env)
 int main(int argc, char** argv)
 {
     auto env = std::make_shared<Calculator::StackedEnvironment>();
-    Calculator::inject_import_function(*env);
-    Calculator::inject_math_functions(*env);
-    Calculator::inject_stdlib_functions(*env);
+    Calculator::inject_import_function(env);
+    Calculator::inject_math_functions(env);
+    Calculator::inject_stdlib_functions(env);
     if (argc == 1) {
 	run_from_cli(env);
     } else

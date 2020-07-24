@@ -16,10 +16,10 @@ constexpr auto PI = 3.14159265359;
 
 namespace Calculator {
 
-void inject_import_function(RuntimeEnv& env)
+void inject_import_function(RuntimeEnvPtr parent_env)
 {
     static auto import_impl = std::make_shared<Function>(
-	[](const Args& args) {
+	[parent_env](const Args& args) {
 	    String path = args[0]->as<String>();
 	    auto file = std::fstream(path);
 	    if (!file.is_open()) {
@@ -33,18 +33,18 @@ void inject_import_function(RuntimeEnv& env)
 
 	    auto parser = Parser(Lexer(content));
 	    auto tree = parser.parse_all();
-	    auto env = std::make_shared<StackedEnvironment>();
+	    auto env = std::make_shared<StackedEnvironment>(parent_env);
 	    ASTEvaluator evaluator(env);
 
 	    for (const auto& expr : tree) {
-		evaluator.run_expression(expr);
+		expr->evaluate(evaluator);
 	    }
 	    return evaluator.get_result();
 	},
 	1);
-    env.assign("import", RuntimeValue::make(import_impl));
+    parent_env->assign("import", RuntimeValue::make(import_impl));
 }
-void inject_stdlib_functions(RuntimeEnv& env)
+void inject_stdlib_functions(RuntimeEnvPtr env)
 {
     static auto exit_impl = std::make_shared<Calculator::VoidFunction>([](const Calculator::Args& args) {
 	auto code = args[0]->as_number();
@@ -74,13 +74,13 @@ void inject_stdlib_functions(RuntimeEnv& env)
 	return RuntimeValue::make_dict();
     },
 	VAR_ARGS);
-    env.assign("exit", RuntimeValue::make(exit_impl));
-    env.assign("input", RuntimeValue::make(input_impl));
-    env.assign("print", RuntimeValue::make(print_impl));
-    env.assign("repr", RuntimeValue::make(repr_impl));
-    env.assign("dict", RuntimeValue::make(dict_impl));
+    env->assign("exit", RuntimeValue::make(exit_impl));
+    env->assign("input", RuntimeValue::make(input_impl));
+    env->assign("print", RuntimeValue::make(print_impl));
+    env->assign("repr", RuntimeValue::make(repr_impl));
+    env->assign("dict", RuntimeValue::make(dict_impl));
 }
-void inject_math_functions(RuntimeEnv& env)
+void inject_math_functions(RuntimeEnvPtr env)
 {
     auto dict_object = RuntimeValue::make(RuntimeValue::make_dict());
     static auto sin_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
@@ -110,6 +110,6 @@ void inject_math_functions(RuntimeEnv& env)
     dict_object->set_named("rad2deg", RuntimeValue(rad2deg_impl));
     dict_object->set_named("PI", PI);
     dict_object->mark_constant();
-    env.assign("Math", dict_object, true);
+    env->assign("Math", dict_object, true);
 }
 };

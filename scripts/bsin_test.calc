@@ -1,0 +1,3 @@
+bs = import("./bhaskara_sin.calc")
+
+print("Bhaskara sin for 1.0 rads is: " + bs.bhaskara_sin(1.0))
