@@ -46,7 +46,7 @@ void inject_import_function(RuntimeEnvPtr parent_env)
 }
 void inject_stdlib_functions(RuntimeEnvPtr env)
 {
-    static auto exit_impl = std::make_shared<Calculator::VoidFunction>([](const Calculator::Args& args) {
+    static auto exit_impl = std::make_shared<VoidFunction>([](const Calculator::Args& args) {
 	auto code = args[0]->as_number();
 	exit(static_cast<int>(code));
     },

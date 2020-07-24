@@ -36,7 +36,7 @@ public:
 
 class Callable {
 public:
-    virtual RuntimeValue call(Args& args) = 0;
+    virtual std::optional<RuntimeValue> call(Args& args) = 0;
     virtual uint8_t arity() = 0;
     virtual std::string to_string() const noexcept
     {

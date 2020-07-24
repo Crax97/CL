@@ -21,5 +21,8 @@ protected:
 	m_stack.pop();
 	return t;
     }
+
+public:
+    bool has_value() const noexcept { return m_stack.size() > 0; }
 };
 }

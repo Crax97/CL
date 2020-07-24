@@ -3,6 +3,7 @@
 #include "commons.hpp"
 #include "value.hpp"
 
+#include <optional>
 #include <sstream>
 
 namespace Calculator {
@@ -18,10 +19,10 @@ public:
     {
     }
     uint8_t arity() override { return m_arity; }
-    RuntimeValue call(Args& args) override
+    std::optional<RuntimeValue> call(Args& args) override
     {
 	m_function(args);
-	return RuntimeValue();
+	return std::nullopt;
     }
 };
 class Function : public Callable {
@@ -36,7 +37,7 @@ public:
     {
     }
     uint8_t arity() override { return m_arity; }
-    RuntimeValue call(Args& args) override
+    std::optional<RuntimeValue> call(Args& args) override
     {
 	return m_function(args);
     }

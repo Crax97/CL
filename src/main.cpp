@@ -48,7 +48,10 @@ void run_from_cli(Calculator::RuntimeEnvPtr env)
 		std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
 		    ptr->evaluate(evaluator);
 		});
-		std::cout << evaluator.get_result().to_string() << "\n";
+
+		if (evaluator.has_value()) {
+		    std::cout << evaluator.get_result().to_string() << "\n";
+		}
 	    }
 	    std::cout << "> ";
 	} catch (Calculator::CLException& ex) {
