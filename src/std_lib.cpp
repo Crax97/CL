@@ -83,6 +83,11 @@ void inject_stdlib_functions(RuntimeEnvPtr env)
 void inject_math_functions(RuntimeEnvPtr env)
 {
     auto dict_object = RuntimeValue::make(RuntimeValue::make_dict());
+    static auto abs_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
+	auto num = args[0]->as_number();
+	return num < 0 ? -num : num;
+    },
+	1);
     static auto sin_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
 	auto num = args[0]->as_number();
 	return sin(num);
@@ -108,6 +113,7 @@ void inject_math_functions(RuntimeEnvPtr env)
     dict_object->set_named("cos", RuntimeValue(cos_impl));
     dict_object->set_named("deg2rad", RuntimeValue(deg2rad_impl));
     dict_object->set_named("rad2deg", RuntimeValue(rad2deg_impl));
+    dict_object->set_named("abs", RuntimeValue(abs_impl));
     dict_object->set_named("PI", PI);
     dict_object->mark_constant();
     env->assign("Math", dict_object, true);
