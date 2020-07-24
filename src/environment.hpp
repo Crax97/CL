@@ -13,6 +13,7 @@ class Env {
 public:
     virtual void assign(const std::string&, T, bool is_const = false) = 0;
     virtual T& get(const std::string&) = 0;
+    virtual std::string to_string() const noexcept = 0;
 };
 
 class StackedEnvironment : public Env<RuntimeValuePtr>, std::enable_shared_from_this<StackedEnvironment> {
@@ -33,5 +34,6 @@ public:
     }
     void assign(const std::string&, RuntimeValuePtr, bool is_const = false) override;
     RuntimeValuePtr& get(const std::string&) override;
+    std::string to_string() const noexcept override;
 };
 }

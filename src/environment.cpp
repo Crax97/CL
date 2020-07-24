@@ -1,6 +1,7 @@
 #include "environment.hpp"
 #include "commons.hpp"
 #include "exceptions.hpp"
+#include <sstream>
 
 namespace Calculator {
 
@@ -31,6 +32,18 @@ void StackedEnvironment::assign(const std::string& name, RuntimeValuePtr val, bo
 	m_consts.insert(name);
     }
     m_scope[name] = val;
+}
+
+std::string StackedEnvironment::to_string() const noexcept
+{
+    std::stringstream stream;
+    stream << "{\n";
+    for (const auto& pair : m_scope) {
+	stream << "\t" << pair.first << " : " << pair.second->to_string() << "\n";
+    }
+    stream << "}";
+
+    return stream.str();
 }
 
 }

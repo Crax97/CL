@@ -18,6 +18,15 @@ std::string num_to_str_pretty_formatted(double n)
     return repr;
 }
 
+template <class T>
+std::string addr_to_hex_str(const T& el)
+{
+    std::stringstream str;
+    str << "@0x" << std::hex;
+    str << reinterpret_cast<uint64_t>(&el);
+    return str.str();
+}
+
 namespace Calculator {
 struct NegateVisitor {
     RawValue operator()(const Number v) { return -v; }
@@ -32,7 +41,7 @@ struct NegateVisitor {
 struct StringVisitor {
     std::string operator()(const std::monostate v) { return "nool"; }
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
-    std::string operator()(const Module& mod) { return "Module TODO"; }
+    std::string operator()(const Module& mod) { return "Module " + addr_to_hex_str(mod); }
     std::string operator()(const dict_tag& tag)
     {
 	std::stringstream str;
@@ -65,7 +74,7 @@ struct StringRepresentationVisitor {
     std::string operator()(const dict_tag& s) { return "{}"; }
     std::string operator()(const CallablePtr& call) { return call->string_repr(); }
     std::string operator()(const String& str) { return "\"" + str + "\""; }
-    std::string operator()(const Module& mod) { return "module {}\n"; }
+    std::string operator()(const Module& mod) { return "module " + mod.get_env()->to_string(); }
 };
 
 struct TruthinessVisitor {

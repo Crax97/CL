@@ -31,6 +31,7 @@ public:
     {
     }
 
+    const RuntimeEnvPtr get_env() const noexcept { return m_env; }
     RuntimeValue& get(const std::string& what);
 };
 
