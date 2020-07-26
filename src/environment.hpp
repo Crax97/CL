@@ -13,10 +13,12 @@ class Env {
 public:
     virtual void assign(const std::string&, T, bool is_const = false) = 0;
     virtual T& get(const std::string&) = 0;
+    virtual bool is_bound(const std::string&) = 0;
+    virtual void bind(const std::string&, T, bool is_const = false) = 0;
     virtual std::string to_string() const noexcept = 0;
 };
 
-class StackedEnvironment : public Env<RuntimeValuePtr>, std::enable_shared_from_this<StackedEnvironment> {
+class StackedEnvironment : public Env<RuntimeValuePtr>, public std::enable_shared_from_this<StackedEnvironment> {
 private:
     using Scope = std::unordered_map<std::string, RuntimeValuePtr>;
     Scope m_scope;
@@ -24,16 +26,14 @@ private:
     RuntimeEnvPtr m_parent { nullptr };
 
 public:
-    StackedEnvironment(RuntimeEnvPtr parent)
+    StackedEnvironment(RuntimeEnvPtr parent = nullptr)
 	: m_parent(parent)
-    {
-    }
-    explicit StackedEnvironment()
-	: m_parent(nullptr)
     {
     }
     void assign(const std::string&, RuntimeValuePtr, bool is_const = false) override;
     RuntimeValuePtr& get(const std::string&) override;
+    virtual bool is_bound(const std::string&) override;
+    virtual void bind(const std::string&, RuntimeValuePtr, bool is_const = false) override;
     std::string to_string() const noexcept override;
 };
 }

@@ -146,7 +146,7 @@ void ASTEvaluator::visit_fun_def(const Names& names, const ExprPtr& body)
 }
 void ASTEvaluator::visit_block_expression(const ExprList& block)
 {
-    RuntimeEnvPtr env = std::make_shared<StackedEnvironment>(m_env);
+    auto env = std::make_shared<StackedEnvironment>(m_env);
     ASTEvaluator eval(env);
     std::for_each(block.begin(), block.end(), [&eval](const ExprPtr& expr) {
 	expr->evaluate(eval);
@@ -218,7 +218,7 @@ void ASTEvaluator::visit_module_definition(const ExprList& list)
 
 std::optional<RuntimeValue> ASTFunction::call(Args& args)
 {
-    RuntimeEnvPtr env = std::make_shared<StackedEnvironment>(m_definition_env);
+    auto env = std::make_shared<StackedEnvironment>(m_definition_env);
     for (size_t i = 0; i < args.size(); i++) {
 	env->assign(m_arg_names[i], args[i], false);
     }

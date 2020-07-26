@@ -19,16 +19,15 @@
 
 namespace Calculator {
 class RuntimeValue;
-template <class T>
-class Env;
 
 class Callable;
 class Expression;
 class Indexable;
+class StackedEnvironment;
 
-using RuntimeValuePtr = std::shared_ptr<RuntimeValue>;
-using RuntimeEnv = Env<RuntimeValuePtr>;
-using RuntimeEnvPtr = std::shared_ptr<RuntimeEnv>;
+using RuntimeValuePtr
+    = std::shared_ptr<RuntimeValue>;
+using RuntimeEnvPtr = std::shared_ptr<StackedEnvironment>;
 using IndexablePtr = std::shared_ptr<Indexable>;
 
 using Number = double;

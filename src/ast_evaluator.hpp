@@ -10,7 +10,7 @@
 namespace Calculator {
 class ASTEvaluator : public StackMachine<RuntimeValuePtr>, public Evaluator {
 private:
-    RuntimeEnvPtr m_env;
+    std::shared_ptr<StackedEnvironment> m_env;
     void visit_number_expression(Number n) override;
     void visit_string_expression(String s) override;
     void visit_and_expression(const ExprPtr& left, const ExprPtr& right) override;
@@ -29,12 +29,13 @@ private:
     void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch)
 	override;
     void visit_while_expression(const ExprPtr& cond, const ExprPtr& body) override;
+    void visit_for_expression(const std::string& name, const ExprPtr& iterable, const ExprPtr& body) override;
     void visit_set_expression(const ExprPtr& obj, const ExprPtr& name, const ExprPtr& val) override;
     void visit_get_expression(const ExprPtr& obj, const ExprPtr& name) override;
     void visit_module_definition(const ExprList& list) override;
 
 public:
-    ASTEvaluator(RuntimeEnvPtr env)
+    ASTEvaluator(std::shared_ptr<StackedEnvironment> env)
 	: m_env(env)
     {
     }
@@ -44,11 +45,11 @@ public:
 class ASTFunction : public Callable {
 private:
     ExprPtr m_body;
-    RuntimeEnvPtr m_definition_env;
+    std::shared_ptr<StackedEnvironment> m_definition_env;
     Names m_arg_names;
 
 public:
-    ASTFunction(ExprPtr body, Names names, RuntimeEnvPtr definition_env)
+    ASTFunction(ExprPtr body, Names names, std::shared_ptr<StackedEnvironment> definition_env)
 	: m_body(body)
 	, m_arg_names(names)
 	, m_definition_env(definition_env)

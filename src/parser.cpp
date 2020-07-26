@@ -223,7 +223,6 @@ ExprPtr Parser::for_expression()
     consume(TokenType::In);
     auto iterator = expression();
     auto body = expression();
-
     return std::make_unique<ForExpression>(name, iterator, body);
 }
 

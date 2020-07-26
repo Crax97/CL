@@ -26,12 +26,31 @@ RuntimeValuePtr& StackedEnvironment::get(const std::string& name)
 
 void StackedEnvironment::assign(const std::string& name, RuntimeValuePtr val, bool is_const)
 {
+    auto current = shared_from_this();
+    while (current != nullptr) {
+	if (current->is_bound(name)) {
+	    current->bind(name, val, is_const);
+	    return;
+	}
+	current = current->m_parent;
+    }
+    bind(name, val, is_const);
+}
+
+void StackedEnvironment::bind(const std::string& name, RuntimeValuePtr val, bool is_const)
+{
+
     if (m_consts.find(name) != m_consts.end()) {
-	throw RuntimeException("Cannot assign to " + name + ": it is constant.");
-    } else if (is_const) {
-	m_consts.insert(name);
+	throw RuntimeException(name + " is const.");
     }
     m_scope[name] = val;
+    if (is_const)
+	m_consts.insert(name);
+}
+
+bool StackedEnvironment::is_bound(const std::string& name)
+{
+    return m_scope.find(name) != m_scope.end();
 }
 
 std::string StackedEnvironment::to_string() const noexcept

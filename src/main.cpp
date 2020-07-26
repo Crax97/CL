@@ -19,7 +19,7 @@
 #include "tokens.hpp"
 #include "value.hpp"
 
-void run_script(const std::string& script_path, Calculator::RuntimeEnvPtr env)
+void run_script(const std::string& script_path, std::shared_ptr<Calculator::StackedEnvironment> env)
 {
     std::ifstream file(script_path);
     std::string content, line;
@@ -35,7 +35,7 @@ void run_script(const std::string& script_path, Calculator::RuntimeEnvPtr env)
     });
 }
 
-void run_from_cli(Calculator::RuntimeEnvPtr env)
+void run_from_cli(std::shared_ptr<Calculator::StackedEnvironment> env)
 {
     std::string line;
     std::cout << "> ";
