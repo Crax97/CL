@@ -19,7 +19,7 @@ public:
     {
     }
     uint8_t arity() override { return m_arity; }
-    std::optional<RuntimeValue> call(Args& args) override
+    std::optional<RuntimeValue> call(const Args& args = Args()) override
     {
 	m_function(args);
 	return std::nullopt;
@@ -37,7 +37,7 @@ public:
     {
     }
     uint8_t arity() override { return m_arity; }
-    std::optional<RuntimeValue> call(Args& args) override
+    std::optional<RuntimeValue> call(const Args& args = Args()) override
     {
 	return m_function(args);
     }

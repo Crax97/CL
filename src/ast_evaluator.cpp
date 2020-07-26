@@ -203,7 +203,17 @@ void ASTEvaluator::visit_while_expression(const ExprPtr& cond, const ExprPtr& bo
     }
 }
 
-void ASTEvaluator::visit_for_expression(const std::string& name, const ExprPtr& iterable, const ExprPtr& body) { TODO(); }
+void ASTEvaluator::visit_for_expression(const std::string& name, const ExprPtr& iterable, const ExprPtr& body)
+{
+    iterable->evaluate(*this);
+    auto iterable_val = pop();
+    auto iterable_fun = iterable_val->get_named("__iter");
+    if (!iterable_fun.is<CallablePtr>()) {
+	throw RuntimeException(iterable_val->to_string() + "'s __iter is not a function!");
+    }
+
+    auto iterator = iterable_fun.as<CallablePtr>()->call();
+}
 
 void ASTEvaluator::visit_module_definition(const ExprList& list)
 {
@@ -216,7 +226,7 @@ void ASTEvaluator::visit_module_definition(const ExprList& list)
     push(RuntimeValue::make(std::dynamic_pointer_cast<Indexable>(mod)));
 }
 
-std::optional<RuntimeValue> ASTFunction::call(Args& args)
+std::optional<RuntimeValue> ASTFunction::call(const Args& args)
 {
     auto env = std::make_shared<StackedEnvironment>(m_definition_env);
     for (size_t i = 0; i < args.size(); i++) {

@@ -55,7 +55,7 @@ public:
 	, m_definition_env(definition_env)
     {
     }
-    std::optional<RuntimeValue> call(Args& args) override;
+    std::optional<RuntimeValue> call(const Args& args = Args()) override;
     uint8_t arity() override { return m_arg_names.size(); }
     std::string string_repr() const noexcept override
     {
