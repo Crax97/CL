@@ -212,7 +212,14 @@ void ASTEvaluator::visit_for_expression(const std::string& name, const ExprPtr& 
 	throw RuntimeException(iterable_val->to_string() + "'s __iter is not a function!");
     }
 
-    auto iterator = iterable_fun.as<CallablePtr>()->call();
+    auto iterator = iterable_fun.as<CallablePtr>()->call().value();
+    auto has_next_fun = iterator.get_named("__has_next").as<CallablePtr>();
+    auto next_fun = iterator.get_named("__next").as<CallablePtr>();
+    while (has_next_fun->call().value().is_truthy()) {
+	auto val = RuntimeValue::make(next_fun->call().value());
+	m_env->assign(name, val, false);
+	body->evaluate(*this);
+    }
 }
 
 void ASTEvaluator::visit_module_definition(const ExprList& list)
