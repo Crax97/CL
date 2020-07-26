@@ -42,20 +42,7 @@ struct StringVisitor {
     std::string operator()(const std::monostate v) { return "nool"; }
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
     std::string operator()(const Module& mod) { return "Module " + addr_to_hex_str(mod); }
-    std::string operator()(const IndexablePtr& ptr) { return "Indexable"; }
-    std::string operator()(const dict_tag& tag)
-    {
-	std::stringstream str;
-	str << "Dict { \n";
-#if 0
-	for (const auto& couple : m_map) {
-	    str << couple.first << " : " << couple.second << ",\n";
-	}
-#endif
-	str << "}";
-	return str.str();
-    }
-
+    std::string operator()(const IndexablePtr& ptr) { return ptr->to_string(); }
     std::string operator()(const CallablePtr& call)
     {
 	return call->to_string();
@@ -72,11 +59,9 @@ struct StringRepresentationVisitor {
     {
 	return std::to_string(v);
     }
-    std::string operator()(const dict_tag& s) { return "{}"; }
     std::string operator()(const CallablePtr& call) { return call->string_repr(); }
     std::string operator()(const String& str) { return "\"" + str + "\""; }
-    std::string operator()(const Module& mod) { return "module " + mod.get_env()->to_string(); }
-    std::string operator()(const IndexablePtr& ptr) { return "Indexable"; }
+    std::string operator()(const IndexablePtr& ptr) { return ptr->string_repr(); }
 };
 
 struct TruthinessVisitor {
@@ -255,4 +240,19 @@ RuntimeValue& Module::get(const RuntimeValue& what)
     }
     return *m_env->get(what.as<String>());
 }
+
+std::string Module::to_string() { return "Module " + addr_to_hex_str(*this); }
+std::string Module::string_repr() { return "module " + m_env->to_string(); }
+std::string Dictionary::to_string() { return "Dictionary " + addr_to_hex_str(*this); }
+std::string Dictionary::string_repr()
+{
+    std::stringstream stream;
+    stream << " {\n";
+    for (const auto& pair : m_map) {
+	stream << "\t" << pair.first.to_string() << " : " << pair.second.to_string() << "\n";
+    }
+    stream << "}";
+    return "dict " + stream.str();
+}
+
 } // namespace CL

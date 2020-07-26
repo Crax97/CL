@@ -28,6 +28,7 @@ private:
 
     void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch)
 	override;
+    void visit_while_expression(const ExprPtr& cond, const ExprPtr& body) override;
     void visit_set_expression(const ExprPtr& obj, const ExprPtr& name, const ExprPtr& val) override;
     void visit_get_expression(const ExprPtr& obj, const ExprPtr& name) override;
     void visit_module_definition(const ExprList& list) override;

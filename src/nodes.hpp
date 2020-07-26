@@ -23,6 +23,8 @@ public:
     virtual void visit_block_expression(const ExprList& block) = 0;
     virtual void visit_return_expression(const ExprPtr& expr) = 0;
     virtual void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch) = 0;
+    virtual void visit_while_expression(const ExprPtr& cond, const ExprPtr& body) = 0;
+    virtual void visit_for_expression(const std::string& name, const ExprPtr& iterator, const ExprPtr& body) = 0;
     virtual void visit_set_expression(const ExprPtr& obj, const ExprPtr& what, const ExprPtr& value) = 0;
     virtual void visit_get_expression(const ExprPtr& obj, const ExprPtr& what) = 0;
     virtual void visit_module_definition(const ExprList& exprs) = 0;
@@ -160,6 +162,36 @@ public:
     }
 
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_if_expression(m_cond, m_body, m_else); }
+};
+
+class WhileExpression : public Expression {
+private:
+    ExprPtr m_cond;
+    ExprPtr m_body;
+
+public:
+    WhileExpression(ExprPtr cond, ExprPtr body)
+	: m_cond(cond)
+	, m_body(body)
+    {
+    }
+    void evaluate(Evaluator& evaluator) const override { evaluator.visit_while_expression(m_cond, m_body); }
+};
+
+class ForExpression : public Expression {
+private:
+    std::string m_name;
+    ExprPtr m_iterable;
+    ExprPtr m_body;
+
+public:
+    ForExpression(std::string name, ExprPtr iterable, ExprPtr body)
+	: m_name(name)
+	, m_iterable(iterable)
+	, m_body(body)
+    {
+    }
+    void evaluate(Evaluator& evaluator) const override { evaluator.visit_for_expression(m_name, m_iterable, m_body); }
 };
 
 class FunCallExpression : public Expression {

@@ -98,6 +98,25 @@ void DebugPrinterEvaluator::visit_if_expression(const ExprPtr& cond, const ExprP
     push(result);
 }
 
+void DebugPrinterEvaluator::visit_while_expression(const ExprPtr& cond, const ExprPtr& body)
+{
+    cond->evaluate(*this);
+    body->evaluate(*this);
+
+    auto body_str = pop();
+
+    push("while " + pop() + " " + body_str);
+}
+void DebugPrinterEvaluator::visit_for_expression(const std::string& name, const ExprPtr& iterable, const ExprPtr& body)
+{
+    iterable->evaluate(*this);
+    body->evaluate(*this);
+
+    auto body_str = pop();
+    auto iterable_str = pop();
+
+    push("for " + name + " in " + iterable_str + " " + body_str);
+}
 void DebugPrinterEvaluator::visit_set_expression(const ExprPtr& obj, const ExprPtr& name, const ExprPtr& val)
 {
     obj->evaluate(*this);

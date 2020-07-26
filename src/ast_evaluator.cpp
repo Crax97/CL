@@ -194,6 +194,17 @@ void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_br
     }
 }
 
+void ASTEvaluator::visit_while_expression(const ExprPtr& cond, const ExprPtr& body)
+{
+    cond->evaluate(*this);
+    while (pop()->is_truthy()) {
+	body->evaluate(*this);
+	cond->evaluate(*this);
+    }
+}
+
+void ASTEvaluator::visit_for_expression(const std::string& name, const ExprPtr& iterable, const ExprPtr& body) { TODO(); }
+
 void ASTEvaluator::visit_module_definition(const ExprList& list)
 {
     auto env = std::make_shared<StackedEnvironment>(m_env);

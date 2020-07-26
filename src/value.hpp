@@ -17,13 +17,13 @@ class RuntimeValue;
 
 constexpr uint8_t VAR_ARGS = 0xFF;
 
-struct dict_tag {
-};
-
 class Indexable {
 public:
     virtual void set(const RuntimeValue&, RuntimeValue v) = 0;
     virtual RuntimeValue& get(const RuntimeValue&) = 0;
+
+    virtual std::string to_string() = 0;
+    virtual std::string string_repr() = 0;
 };
 
 class Callable {
@@ -146,6 +146,8 @@ private:
 public:
     void set(const RuntimeValue& s, RuntimeValue v) override { m_map[s] = v; }
     RuntimeValue& get(const RuntimeValue& s) override { return m_map[s.as<String>()]; }
+    virtual std::string to_string() override;
+    virtual std::string string_repr() override;
 };
 
 class Module : public Indexable {
@@ -162,5 +164,7 @@ public:
     const RuntimeEnvPtr get_env() const noexcept { return m_env; }
     RuntimeValue& get(const RuntimeValue& what) override;
     void set(const RuntimeValue&, RuntimeValue) override { throw RuntimeException("Modules aren't externally modifiable."); }
+    virtual std::string to_string() override;
+    virtual std::string string_repr() override;
 };
 } // namespace CL

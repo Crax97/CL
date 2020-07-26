@@ -177,6 +177,10 @@ ExprPtr Parser::expression()
 	return return_expression();
     } else if (match(TokenType::Module)) {
 	return module_expression();
+    } else if (match(TokenType::While)) {
+	return while_expression();
+    } else if (match(TokenType::For)) {
+	return for_expression();
     }
     auto expr = and_expr();
     if (match(TokenType::If)) {
@@ -202,6 +206,25 @@ ExprPtr Parser::module_expression()
     }
     consume(TokenType::Right_Curly_Brace);
     return std::make_unique<ModuleExpression>(list);
+}
+
+ExprPtr Parser::while_expression()
+{
+    consume(TokenType::While);
+    auto cond = expression();
+    auto body = expression();
+    return std::make_unique<WhileExpression>(cond, body);
+}
+
+ExprPtr Parser::for_expression()
+{
+    consume(TokenType::For);
+    auto name = consume(TokenType::Identifier).get<String>();
+    consume(TokenType::In);
+    auto iterator = expression();
+    auto body = expression();
+
+    return std::make_unique<ForExpression>(name, iterator, body);
 }
 
 ExprPtr Parser::block_expression()
