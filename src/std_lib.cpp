@@ -16,6 +16,30 @@ constexpr auto PI = 3.14159265359;
 
 namespace Calculator {
 
+class RangeIterator {
+private:
+    Number m_current, m_end, m_step;
+
+public:
+    RangeIterator(Number begin, Number end, Number step)
+	: m_current(begin)
+	, m_end(end)
+	, m_step(step)
+    {
+    }
+
+    bool has_next()
+    {
+	return m_current < m_end;
+    }
+    RuntimeValue next()
+    {
+	auto v = m_current;
+	m_current += m_step;
+	return RuntimeValue(v);
+    }
+};
+
 void inject_import_function(RuntimeEnvPtr parent_env)
 {
     static auto import_impl = std::make_shared<Function>(
@@ -75,11 +99,32 @@ void inject_stdlib_functions(RuntimeEnvPtr env)
 	return RuntimeValue(std::dynamic_pointer_cast<Indexable>(dict));
     },
 	VAR_ARGS);
+    static auto range_impl = std::make_shared<Function>([](const Args& args) {
+	auto begin = args[0]->as<Number>();
+	auto end = args[1]->as<Number>();
+	auto step = args[2]->as<Number>();
+
+	auto iterator = std::make_shared<RangeIterator>(begin, end, step);
+	auto dict = RuntimeValue(std::make_shared<Dictionary>());
+	auto has_next_lambda = std::make_shared<Function>([iterator](const Args& args) {
+	    return iterator->has_next();
+	},
+	    0);
+	auto next_lambda = std::make_shared<Function>([iterator](const Args& args) {
+	    return iterator->next();
+	},
+	    0);
+	dict.set_named("__has_next", RuntimeValue(has_next_lambda));
+	dict.set_named("__next", RuntimeValue(next_lambda));
+	return dict;
+    },
+	3);
     env->assign("exit", RuntimeValue::make(exit_impl));
     env->assign("input", RuntimeValue::make(input_impl));
     env->assign("print", RuntimeValue::make(print_impl));
     env->assign("repr", RuntimeValue::make(repr_impl));
     env->assign("dict", RuntimeValue::make(dict_impl));
+    env->assign("range", RuntimeValue::make(range_impl));
 }
 void inject_math_functions(RuntimeEnvPtr env)
 {
