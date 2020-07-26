@@ -20,19 +20,10 @@ constexpr uint8_t VAR_ARGS = 0xFF;
 struct dict_tag {
 };
 
-class Module {
-
-private:
-    RuntimeEnvPtr m_env;
-
+class Indexable {
 public:
-    Module(RuntimeEnvPtr env)
-	: m_env(env)
-    {
-    }
-
-    const RuntimeEnvPtr get_env() const noexcept { return m_env; }
-    RuntimeValue& get(const std::string& what);
+    virtual void set(const RuntimeValue&, RuntimeValue v) = 0;
+    virtual RuntimeValue& get(const RuntimeValue&) = 0;
 };
 
 class Callable {
@@ -50,17 +41,13 @@ public:
     virtual std::string string_repr() const noexcept { return to_string(); }
 };
 
-using RawValue = std::variant<std::monostate, Number, String, dict_tag, Module, CallablePtr>;
+using RawValue = std::variant<std::monostate, Number, String, IndexablePtr, CallablePtr>;
 
 class RuntimeValue {
 private:
     RawValue m_value;
     bool m_constant { false };
     Dict m_map;
-    RuntimeValue(dict_tag tag)
-	: m_value(tag)
-    {
-    }
 
 public:
     Number as_number() const;
@@ -99,38 +86,36 @@ public:
     bool operator<=(const RuntimeValue& other) const;
     bool operator>=(const RuntimeValue& other) const;
 
-    void mark_constant(bool value = true) noexcept { m_constant = value; }
     void set_property(const RuntimeValue& name, RuntimeValue val)
     {
-	if (m_constant) {
-	    throw RuntimeException("Cannot modify this object, as it's marked constant");
-	}
-	m_map[name] = val;
+	if (is<IndexablePtr>()) {
+	    auto ind = as<IndexablePtr>();
+	    ind->set(name, val);
+	} else
+	    throw RuntimeException(to_string() + " is not indexable!");
     }
-    void set_named(const std::string& name, RuntimeValue val) { set_property(RuntimeValue(name), val); }
     RuntimeValue& get_property(const RuntimeValue& name)
     {
-	if (std::holds_alternative<Module>(m_value)) {
-	    auto as_mod = as<Module>();
-	    return as_mod.get(name.as<String>());
-	}
-	return m_map[name];
+	if (is<IndexablePtr>()) {
+	    auto ind = as<IndexablePtr>();
+	    return ind->get(name);
+	} else
+	    throw RuntimeException(to_string() + " is not indexable!");
     }
-    RuntimeValue& get_named(const std ::string& name)
+
+    void set_named(const std::string& name, RuntimeValue v)
     {
-	if (std::holds_alternative<Module>(m_value)) {
-	    auto as_mod = as<Module>();
-	    return as_mod.get(name);
-	}
-	return m_map[RuntimeValue(name)];
+	set_property(RuntimeValue(name), v);
+    }
+    RuntimeValue get_named(const std::string& name)
+    {
+	return get_property(RuntimeValue(name));
     }
 
     RawValue& raw_value();
 
     std::string to_string() const noexcept;
     std::string string_representation() const noexcept;
-
-    static RuntimeValue make_dict() { return RuntimeValue(dict_tag()); }
 
     RuntimeValue(Number n) noexcept
 	: m_value(n)
@@ -140,22 +125,42 @@ public:
 	: m_value(s)
     {
     }
-    RuntimeValue(Dict s) noexcept
-	: m_value(dict_tag())
-	, m_map(s)
-    {
-    }
     RuntimeValue(CallablePtr c) noexcept
 	: m_value(c)
     {
     }
-    RuntimeValue(Module m) noexcept
-	: m_value(m)
+    RuntimeValue(IndexablePtr p) noexcept
+	: m_value(p)
     {
     }
     RuntimeValue() noexcept
 	: m_value(std::monostate())
     {
     }
+};
+
+class Dictionary : public Indexable {
+private:
+    Dict m_map;
+
+public:
+    void set(const RuntimeValue& s, RuntimeValue v) override { m_map[s] = v; }
+    RuntimeValue& get(const RuntimeValue& s) override { return m_map[s.as<String>()]; }
+};
+
+class Module : public Indexable {
+
+private:
+    RuntimeEnvPtr m_env;
+
+public:
+    Module(RuntimeEnvPtr env)
+	: m_env(env)
+    {
+    }
+
+    const RuntimeEnvPtr get_env() const noexcept { return m_env; }
+    RuntimeValue& get(const RuntimeValue& what) override;
+    void set(const RuntimeValue&, RuntimeValue) override { throw RuntimeException("Modules aren't externally modifiable."); }
 };
 } // namespace CL

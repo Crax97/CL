@@ -201,7 +201,8 @@ void ASTEvaluator::visit_module_definition(const ExprList& list)
     for (auto& expr : list) {
 	evaluator.run_expression(expr);
     }
-    push(RuntimeValue::make(Module(env)));
+    auto mod = std::make_shared<Module>(env);
+    push(RuntimeValue::make(std::dynamic_pointer_cast<Indexable>(mod)));
 }
 
 std::optional<RuntimeValue> ASTFunction::call(Args& args)

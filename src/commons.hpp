@@ -24,11 +24,12 @@ class Env;
 
 class Callable;
 class Expression;
-class Module;
+class Indexable;
 
 using RuntimeValuePtr = std::shared_ptr<RuntimeValue>;
 using RuntimeEnv = Env<RuntimeValuePtr>;
 using RuntimeEnvPtr = std::shared_ptr<RuntimeEnv>;
+using IndexablePtr = std::shared_ptr<Indexable>;
 
 using Number = double;
 using String = std::string;

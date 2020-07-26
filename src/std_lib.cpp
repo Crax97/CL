@@ -71,7 +71,8 @@ void inject_stdlib_functions(RuntimeEnvPtr env)
 	1);
 
     static auto dict_impl = std::make_shared<Function>([](const Args& args) {
-	return RuntimeValue::make_dict();
+	auto dict = std::make_shared<Dictionary>();
+	return RuntimeValue(std::dynamic_pointer_cast<Indexable>(dict));
     },
 	VAR_ARGS);
     env->assign("exit", RuntimeValue::make(exit_impl));
@@ -82,7 +83,7 @@ void inject_stdlib_functions(RuntimeEnvPtr env)
 }
 void inject_math_functions(RuntimeEnvPtr env)
 {
-    auto dict_object = RuntimeValue::make(RuntimeValue::make_dict());
+    auto dict_object = RuntimeValue::make(std::make_shared<Dictionary>());
     static auto abs_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
 	auto num = args[0]->as_number();
 	return num < 0 ? -num : num;
@@ -115,7 +116,6 @@ void inject_math_functions(RuntimeEnvPtr env)
     dict_object->set_named("rad2deg", RuntimeValue(rad2deg_impl));
     dict_object->set_named("abs", RuntimeValue(abs_impl));
     dict_object->set_named("PI", PI);
-    dict_object->mark_constant();
     env->assign("Math", dict_object, true);
 }
 };

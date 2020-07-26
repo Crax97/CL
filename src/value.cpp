@@ -42,6 +42,7 @@ struct StringVisitor {
     std::string operator()(const std::monostate v) { return "nool"; }
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
     std::string operator()(const Module& mod) { return "Module " + addr_to_hex_str(mod); }
+    std::string operator()(const IndexablePtr& ptr) { return "Indexable"; }
     std::string operator()(const dict_tag& tag)
     {
 	std::stringstream str;
@@ -75,6 +76,7 @@ struct StringRepresentationVisitor {
     std::string operator()(const CallablePtr& call) { return call->string_repr(); }
     std::string operator()(const String& str) { return "\"" + str + "\""; }
     std::string operator()(const Module& mod) { return "module " + mod.get_env()->to_string(); }
+    std::string operator()(const IndexablePtr& ptr) { return "Indexable"; }
 };
 
 struct TruthinessVisitor {
@@ -231,29 +233,26 @@ bool RuntimeValue::operator>=(const RuntimeValue& other) const
 std::string RuntimeValue::to_string() const noexcept
 {
     // Ew hacks
-    if (!std::holds_alternative<dict_tag>(m_value)) {
-	return std::visit(StringVisitor {}, m_value);
-    } else {
-	return "Dict " + string_representation();
-    }
+    return std::visit(StringVisitor {}, m_value);
 }
 
 std::string RuntimeValue::string_representation() const noexcept
 {
-    // Ew hacks
-    if (!std::holds_alternative<dict_tag>(m_value)) {
-	return std::visit(StringRepresentationVisitor {}, m_value);
-    } else {
-	std::stringstream sstr;
-	sstr << "{\n";
-	for (const auto& entries : m_map) {
-	    sstr << "\t" << entries.first.to_string() << " : " << entries.second.to_string() << ",\n";
-	}
-	sstr << "}";
-	return sstr.str();
+    std::stringstream sstr;
+    sstr << "{\n";
+    for (const auto& entries : m_map) {
+	sstr << "\t" << entries.first.to_string() << " : " << entries.second.to_string() << ",\n";
     }
+    sstr << "}";
+    return sstr.str();
 }
 
 RawValue& RuntimeValue::raw_value() { return m_value; }
-RuntimeValue& Module::get(const std::string& what) { return *m_env->get(what); }
+RuntimeValue& Module::get(const RuntimeValue& what)
+{
+    if (!what.is<String>()) {
+	throw RuntimeException("Modules are only indexable by strings!");
+    }
+    return *m_env->get(what.as<String>());
+}
 } // namespace CL
