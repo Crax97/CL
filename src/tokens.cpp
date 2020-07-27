@@ -26,6 +26,8 @@ std::string token_type_to_string(TokenType type) noexcept
     switch (type) {
     case TokenType::Eof:
 	return "Eof";
+    case TokenType::Newline:
+	return "Newline";
     case TokenType::Number:
 	return "Number";
     case TokenType::Plus:

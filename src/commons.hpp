@@ -65,6 +65,7 @@ enum class UnaryOp {
 
 enum class TokenType {
     Eof,
+    Newline,
     Number,
     String,
     Module,

@@ -164,6 +164,7 @@ ExprList Parser::parse_all()
     auto list = ExprList();
     while (!m_lexer.is_at_end() && m_lexer.peek().get_type() != TokenType::Eof) {
 	auto next_statement = expression();
+	consume(TokenType::Newline, TokenType::Point_Comma, TokenType::Eof);
 	list.push_back(std::move(next_statement));
     }
     return list;

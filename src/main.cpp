@@ -35,12 +35,32 @@ void run_script(const std::string& script_path, std::shared_ptr<Calculator::Stac
     });
 }
 
+std::string read_from_console()
+{
+    std::string content, line;
+    constexpr std::string_view SCOPE_IN = "{";
+    constexpr std::string_view SCOPE_OUT = "}";
+    int scope = 0;
+    do {
+	std::cout << std::to_string(scope) << "> ";
+	std::getline(std::cin, line);
+
+	for (char c : line) {
+	    if (SCOPE_IN.find(c) != std::string_view::npos)
+		scope++;
+	    if (SCOPE_OUT.find(c) != std::string_view::npos)
+		scope--;
+	}
+	content += line;
+    } while (scope > 0);
+    return content;
+}
+
 void run_from_cli(std::shared_ptr<Calculator::StackedEnvironment> env)
 {
-    std::string line;
-    std::cout << "> ";
-    while (std::getline(std::cin, line)) {
+    while (true) {
 	try {
+	    auto line = read_from_console();
 	    auto parser = Calculator::Parser(Calculator::Lexer(line));
 	    auto tree = parser.parse_all();
 	    auto evaluator = Calculator::ASTEvaluator(env);
@@ -53,7 +73,6 @@ void run_from_cli(std::shared_ptr<Calculator::StackedEnvironment> env)
 		    std::cout << evaluator.get_result().to_string() << "\n";
 		}
 	    }
-	    std::cout << "> ";
 	} catch (Calculator::CLException& ex) {
 	    std::cerr << "Error: " << ex.get_message() << "\n";
 	    std::cout << "> ";
