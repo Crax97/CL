@@ -151,7 +151,9 @@ void ASTEvaluator::visit_block_expression(const ExprList& block)
     std::for_each(block.begin(), block.end(), [&eval](const ExprPtr& expr) {
 	expr->evaluate(eval);
     });
-    push(eval.get_result());
+    if (eval.has_value()) {
+	push(eval.get_result());
+    }
 }
 
 RuntimeValue ASTEvaluator::run_expression(const ExprPtr& expr)
