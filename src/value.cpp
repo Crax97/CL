@@ -2,6 +2,7 @@
 #include "commons.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
+#include "function_callable.hpp"
 
 #include <cmath>
 #include <ios>
@@ -243,6 +244,15 @@ RuntimeValue& Module::get(const RuntimeValue& what)
 
 std::string Module::to_string() { return "Module " + addr_to_hex_str(*this); }
 std::string Module::string_repr() { return "module " + m_env->to_string(); }
+
+Dictionary::Dictionary()
+{
+    m_map[RuntimeValue("contains")] = RuntimeValue(
+	std::make_shared<Function>([this](const Args& args) {
+	    return m_map.find(args[0]) != m_map.end();
+	},
+	    1));
+}
 std::string Dictionary::to_string() { return "Dictionary " + addr_to_hex_str(*this); }
 std::string Dictionary::string_repr()
 {

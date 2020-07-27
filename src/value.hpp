@@ -144,8 +144,15 @@ private:
     Dict m_map;
 
 public:
+    Dictionary();
     void set(const RuntimeValue& s, RuntimeValue v) override { m_map[s] = v; }
-    RuntimeValue& get(const RuntimeValue& s) override { return m_map[s]; }
+    RuntimeValue& get(const RuntimeValue& s) override
+    {
+	if (m_map.find(s) != m_map.end()) {
+	    return m_map[s];
+	}
+	throw RuntimeException(s.to_string() + " is not bound in this dictionary");
+    }
     virtual std::string to_string() override;
     virtual std::string string_repr() override;
 };
