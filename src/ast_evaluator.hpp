@@ -8,7 +8,7 @@
 #include "value.hpp"
 
 namespace Calculator {
-class ASTEvaluator : public StackMachine<RuntimeValuePtr>, public Evaluator {
+class ASTEvaluator : public StackMachine<RuntimeValue>, public Evaluator {
 private:
     std::shared_ptr<StackedEnvironment> m_env;
     void visit_number_expression(Number n) override;
@@ -40,7 +40,7 @@ public:
     {
     }
     RuntimeValue run_expression(const ExprPtr& body);
-    RuntimeValue get_result() { return *pop(); }
+    RuntimeValue get_result() { return pop(); }
 };
 class ASTFunction : public Callable {
 private:

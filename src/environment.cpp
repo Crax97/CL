@@ -13,7 +13,7 @@ public:
     }
 };
 
-RuntimeValuePtr& StackedEnvironment::get(const std::string& name)
+RuntimeValue& StackedEnvironment::get(const std::string& name)
 {
     if (m_scope.find(name) != m_scope.end()) {
 	return m_scope.at(name);
@@ -24,7 +24,7 @@ RuntimeValuePtr& StackedEnvironment::get(const std::string& name)
     throw NotBoundException(name);
 }
 
-void StackedEnvironment::assign(const std::string& name, RuntimeValuePtr val, bool is_const)
+void StackedEnvironment::assign(const std::string& name, RuntimeValue val, bool is_const)
 {
     auto current = shared_from_this();
     while (current != nullptr) {
@@ -37,7 +37,7 @@ void StackedEnvironment::assign(const std::string& name, RuntimeValuePtr val, bo
     bind(name, val, is_const);
 }
 
-void StackedEnvironment::bind(const std::string& name, RuntimeValuePtr val, bool is_const)
+void StackedEnvironment::bind(const std::string& name, RuntimeValue val, bool is_const)
 {
 
     if (m_consts.find(name) != m_consts.end()) {
@@ -58,7 +58,7 @@ std::string StackedEnvironment::to_string() const noexcept
     std::stringstream stream;
     stream << "{\n";
     for (const auto& pair : m_scope) {
-	stream << "\t" << pair.first << " : " << pair.second->to_string() << "\n";
+	stream << "\t" << pair.first << " : " << pair.second.to_string() << "\n";
     }
     stream << "}";
 

@@ -238,7 +238,7 @@ RuntimeValue& Module::get(const RuntimeValue& what)
     if (!what.is<String>()) {
 	throw RuntimeException("Modules are only indexable by strings!");
     }
-    return *m_env->get(what.as<String>());
+    return m_env->get(what.as<String>());
 }
 
 std::string Module::to_string() { return "Module " + addr_to_hex_str(*this); }

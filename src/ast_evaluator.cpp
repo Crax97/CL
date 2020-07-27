@@ -11,18 +11,18 @@
 namespace Calculator {
 void ASTEvaluator::visit_number_expression(Number n)
 {
-    push(std::make_shared<RuntimeValue>(n));
+    push(n);
 }
 void ASTEvaluator::visit_string_expression(String s)
 {
-    push(std::make_shared<RuntimeValue>(s));
+    push(s);
 }
 void ASTEvaluator::visit_and_expression(const ExprPtr& left, const ExprPtr& right)
 {
     left->evaluate(*this);
     auto l_result = pop();
-    if (!l_result->is_truthy()) {
-	push(std::make_shared<RuntimeValue>(0));
+    if (!l_result.is_truthy()) {
+	push(0);
     } else {
 	right->evaluate(*this);
     }
@@ -31,8 +31,8 @@ void ASTEvaluator::visit_or_expression(const ExprPtr& left, const ExprPtr& right
 {
     left->evaluate(*this);
     auto l_result = pop();
-    if (l_result->is_truthy()) {
-	push(std::make_shared<RuntimeValue>(1));
+    if (l_result.is_truthy()) {
+	push(1);
     } else {
 	right->evaluate(*this);
     }
@@ -46,40 +46,40 @@ void ASTEvaluator::visit_binary_expression(const ExprPtr& left, BinaryOp op, con
 
     switch (op) {
     case BinaryOp::Addition:
-	push(std::make_shared<RuntimeValue>(*l_val + *r_val));
+	push(l_val + r_val);
 	break;
     case BinaryOp::Subtraction:
-	push(std::make_shared<RuntimeValue>(*l_val - *r_val));
+	push(l_val - r_val);
 	break;
     case BinaryOp::Multiplication:
-	push(std::make_shared<RuntimeValue>(*l_val * *r_val));
+	push(l_val * r_val);
 	break;
     case BinaryOp::Division:
-	push(std::make_shared<RuntimeValue>(*l_val / *r_val));
+	push(l_val / r_val);
 	break;
     case BinaryOp::Exponentiation:
-	push(std::make_shared<RuntimeValue>(l_val->to_power_of(*r_val)));
+	push(l_val.to_power_of(r_val));
 	break;
     case BinaryOp::Modulo:
-	push(std::make_shared<RuntimeValue>(l_val->modulo(*r_val)));
+	push(l_val.modulo(r_val));
 	break;
     case BinaryOp::Less:
-	push(std::make_shared<RuntimeValue>(*l_val < *r_val));
+	push(l_val < r_val);
 	break;
     case BinaryOp::Less_Equals:
-	push(std::make_shared<RuntimeValue>(*l_val <= *r_val));
+	push(l_val <= r_val);
 	break;
     case BinaryOp::Greater:
-	push(std::make_shared<RuntimeValue>(*l_val > *r_val));
+	push(l_val > r_val);
 	break;
     case BinaryOp::Greater_Equals:
-	push(std::make_shared<RuntimeValue>(*l_val >= *r_val));
+	push(l_val >= r_val);
 	break;
     case BinaryOp::Equals:
-	push(std::make_shared<RuntimeValue>(*l_val == *r_val));
+	push(l_val == r_val);
 	break;
     case BinaryOp::Not_Equals:
-	push(std::make_shared<RuntimeValue>(*l_val != *r_val));
+	push(l_val != r_val);
 	break;
     case BinaryOp::And:
     case BinaryOp::Or:
@@ -97,7 +97,7 @@ void ASTEvaluator::visit_unary_expression(UnaryOp op, const ExprPtr& expr)
 	push(val);
 	break;
     case UnaryOp::Negation:
-	val->negate();
+	val.negate();
 	push(val);
 	break;
     }
@@ -117,8 +117,8 @@ void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
 {
     fun->evaluate(*this);
     auto call = pop();
-    if (call->is_callable()) {
-	auto callable = call->as_callable();
+    if (call.is_callable()) {
+	auto callable = call.as_callable();
 
 	if (args.size() != callable->arity() && callable->arity() != VAR_ARGS) {
 	    throw RuntimeException(
@@ -132,16 +132,16 @@ void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
 	}
 	auto result = callable->call(evaluated_args);
 	if (result.has_value()) {
-	    push(RuntimeValue::make(result.value()));
+	    push(result.value());
 	}
     } else {
-	throw RuntimeException(call->to_string() + " is not callable.");
+	throw RuntimeException(call.to_string() + " is not callable.");
     }
 }
 void ASTEvaluator::visit_fun_def(const Names& names, const ExprPtr& body)
 {
     auto fun = std::make_shared<ASTFunction>(body, names, m_env);
-    auto val = std::make_shared<RuntimeValue>(fun);
+    auto val = RuntimeValue(fun);
     push(val);
 }
 void ASTEvaluator::visit_block_expression(const ExprList& block)
@@ -151,13 +151,13 @@ void ASTEvaluator::visit_block_expression(const ExprList& block)
     std::for_each(block.begin(), block.end(), [&eval](const ExprPtr& expr) {
 	expr->evaluate(eval);
     });
-    push(std::make_shared<RuntimeValue>(eval.get_result()));
+    push(eval.get_result());
 }
 
 RuntimeValue ASTEvaluator::run_expression(const ExprPtr& expr)
 {
     expr->evaluate(*this);
-    return *pop();
+    return pop();
 }
 void ASTEvaluator::visit_return_expression(const ExprPtr& expr)
 {
@@ -172,7 +172,7 @@ void ASTEvaluator::visit_set_expression(const ExprPtr& obj, const ExprPtr& name,
     auto m_val = pop();
     auto& m_obj = peek();
 
-    m_obj->set_property(*m_name, *m_val);
+    m_obj.set_property(m_name, m_val);
     push(m_val);
 }
 void ASTEvaluator::visit_get_expression(const ExprPtr& obj, const ExprPtr& name)
@@ -181,13 +181,13 @@ void ASTEvaluator::visit_get_expression(const ExprPtr& obj, const ExprPtr& name)
     name->evaluate(*this);
     auto m_name = pop();
     auto m_obj = pop();
-    push(std::make_shared<RuntimeValue>(m_obj->get_property(*m_name)));
+    push(m_obj.get_property(m_name));
 }
 
 void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_branch, const ExprPtr& else_branch)
 {
     cond->evaluate(*this);
-    if (pop()->is_truthy()) {
+    if (pop().is_truthy()) {
 	if_branch->evaluate(*this);
     } else if (else_branch) {
 	else_branch->evaluate(*this);
@@ -197,7 +197,7 @@ void ASTEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& if_br
 void ASTEvaluator::visit_while_expression(const ExprPtr& cond, const ExprPtr& body)
 {
     cond->evaluate(*this);
-    while (pop()->is_truthy()) {
+    while (pop().is_truthy()) {
 	body->evaluate(*this);
 	cond->evaluate(*this);
     }
@@ -208,10 +208,10 @@ void ASTEvaluator::visit_for_expression(const std::string& name, const ExprPtr& 
     iterable->evaluate(*this);
     auto iterable_val = pop();
 
-    auto has_next_fun = iterable_val->get_named("__has_next").as<CallablePtr>();
-    auto next_fun = iterable_val->get_named("__next").as<CallablePtr>();
+    auto has_next_fun = iterable_val.get_named("__has_next").as<CallablePtr>();
+    auto next_fun = iterable_val.get_named("__next").as<CallablePtr>();
     while (has_next_fun->call().value().is_truthy()) {
-	auto val = RuntimeValue::make(next_fun->call().value());
+	auto val = next_fun->call().value();
 	m_env->assign(name, val, false);
 	body->evaluate(*this);
     }
@@ -225,7 +225,7 @@ void ASTEvaluator::visit_module_definition(const ExprList& list)
 	evaluator.run_expression(expr);
     }
     auto mod = std::make_shared<Module>(env);
-    push(RuntimeValue::make(std::dynamic_pointer_cast<Indexable>(mod)));
+    push(std::dynamic_pointer_cast<Indexable>(mod));
 }
 
 std::optional<RuntimeValue> ASTFunction::call(const Args& args)
