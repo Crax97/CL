@@ -12,6 +12,8 @@ class Evaluator {
 public:
     virtual void visit_number_expression(Number n) = 0;
     virtual void visit_string_expression(String s) = 0;
+    virtual void visit_dict_expression(const std::vector<std::pair<ExprPtr, ExprPtr>>&) = 0;
+    virtual void visit_list_expression(const ExprList&) = 0;
     virtual void visit_and_expression(const ExprPtr& left, const ExprPtr& right) = 0;
     virtual void visit_or_expression(const ExprPtr& left, const ExprPtr& right) = 0;
     virtual void visit_binary_expression(const ExprPtr& left, BinaryOp op, const ExprPtr& right) = 0;
@@ -59,6 +61,35 @@ public:
     void evaluate(Evaluator& evaluator) const override
     {
 	evaluator.visit_string_expression(m_str);
+    }
+};
+
+class DictExpression : public Expression {
+private:
+    std::vector<std::pair<ExprPtr, ExprPtr>> m_exprs;
+
+public:
+    DictExpression(std::vector<std::pair<ExprPtr, ExprPtr>> exprs)
+	: m_exprs(exprs)
+    {
+    }
+    void evaluate(Evaluator& evaluator) const override
+    {
+	evaluator.visit_dict_expression(m_exprs);
+    }
+};
+class ListExpression : public Expression {
+private:
+    ExprList m_exprs;
+
+public:
+    ListExpression(ExprList exprs)
+	: m_exprs(exprs)
+    {
+    }
+    void evaluate(Evaluator& evaluator) const override
+    {
+	evaluator.visit_list_expression(m_exprs);
     }
 };
 

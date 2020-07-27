@@ -100,14 +100,16 @@ std::string token_type_to_string(TokenType type) noexcept
 	return "for";
     case TokenType::Return:
 	return "return";
-    case TokenType::Import:
-	return "import";
     case TokenType::Self:
 	return "self";
     case TokenType::Double_Dots:
 	return ":";
     case TokenType::Arrow:
 	return "->";
+    case TokenType::Dict:
+	return "dict";
+    case TokenType::List:
+	return "list";
     default:
 	return "TokenType not stringified " + std::to_string((uint8_t)type);
     }

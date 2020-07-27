@@ -56,6 +56,7 @@ private:
     ExprPtr block_expression();
     ExprPtr return_expression();
     ExprPtr module_expression();
+    ExprPtr if_expression();
     ExprPtr while_expression();
     ExprPtr for_expression();
     ExprPtr and_expr();
@@ -73,6 +74,9 @@ private:
     ExprPtr get();
     ExprPtr call();
     ExprPtr literal();
+
+    ExprPtr dict_expression();
+    ExprPtr list_expression();
 
     bool match_expression_begin();
     Names arg_names();

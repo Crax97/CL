@@ -17,6 +17,33 @@ void DebugPrinterEvaluator::visit_string_expression(String s)
 {
     push("\"" + s + "\"");
 }
+void DebugPrinterEvaluator::visit_dict_expression(const std::vector<std::pair<ExprPtr, ExprPtr>>& exprs)
+{
+    std::stringstream str;
+    str << "dict {\n";
+    for (const auto& e : exprs) {
+	e.first->evaluate(*this);
+	e.second->evaluate(*this);
+	auto right = pop();
+	auto left = pop();
+	str << "\t" << left << " : " << right << "\n";
+    }
+    str << "}";
+    push(str.str());
+}
+
+void DebugPrinterEvaluator::visit_list_expression(const ExprList& exprs)
+{
+    std::stringstream str;
+    str << "list (\n";
+    for (const auto& e : exprs) {
+	e->evaluate(*this);
+	str << pop() << ", ";
+    }
+    str << ")";
+    push(str.str());
+}
+
 void DebugPrinterEvaluator::visit_and_expression(const ExprPtr& left, const ExprPtr& right)
 {
     left->evaluate(*this);

@@ -182,19 +182,23 @@ ExprPtr Parser::expression()
 	return while_expression();
     } else if (match(TokenType::For)) {
 	return for_expression();
+    } else if (match(TokenType::If)) {
+	return if_expression();
     }
-    auto expr = and_expr();
-    if (match(TokenType::If)) {
-	consume(TokenType::If);
-	auto cond = expression();
-	if (match(TokenType::Else)) {
-	    consume(TokenType::Else);
-	    return std::make_unique<IfExpression>(std::move(cond), std::move(expr), expression());
-	} else {
-	    return std::make_unique<IfExpression>(std::move(cond), std::move(expr), nullptr);
-	}
+    return and_expr();
+}
+
+ExprPtr Parser::if_expression()
+{
+    consume(TokenType::If);
+    auto cond = expression();
+    auto body = expression();
+    ExprPtr else_block = nullptr;
+    if (match(TokenType::Else)) {
+	consume(TokenType::Else);
+	else_block = expression();
     }
-    return expr;
+    return std::make_unique<IfExpression>(std::move(cond), std::move(body), std::move(else_block));
 }
 
 ExprPtr Parser::module_expression()
@@ -462,6 +466,10 @@ ExprPtr Parser::literal()
 	auto expr = expression();
 	consume(TokenType::Right_Brace);
 	return expr;
+    } else if (match(TokenType::Dict)) {
+	return dict_expression();
+    } else if (match(TokenType::List)) {
+	return list_expression();
     }
 
     auto prev = previous();
@@ -469,6 +477,36 @@ ExprPtr Parser::literal()
     auto previous_string = prev.to_string();
     throw_exception("Cannot parse " + next_string + " as an expression!\n", next_token);
     return nullptr;
+}
+
+ExprPtr Parser::dict_expression()
+{
+    consume(TokenType::Dict);
+    consume(TokenType::Left_Curly_Brace);
+    auto expressions = std::vector<std::pair<ExprPtr, ExprPtr>>();
+
+    while (!match(TokenType::Right_Curly_Brace)) {
+	auto l = expression();
+	consume(TokenType::Double_Dots);
+	auto r = expression();
+	expressions.push_back(std::pair<ExprPtr, ExprPtr>(l, r));
+    }
+
+    consume(TokenType::Right_Curly_Brace);
+    return std::make_unique<DictExpression>(expressions);
+}
+
+ExprPtr Parser::list_expression()
+{
+    consume(TokenType::List);
+    consume(TokenType::Left_Brace);
+    auto expressions = ExprList();
+    while (!match(TokenType::Right_Brace)) {
+	expressions.push_back(expression());
+    }
+    consume(TokenType::Right_Brace);
+
+    return std::make_unique<ListExpression>(expressions);
 }
 
 bool Parser::match_expression_begin()

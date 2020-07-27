@@ -113,7 +113,8 @@ enum class TokenType {
     In,
     Return,
     Class,
-    Import,
+    Dict,
+    List,
 
 };
 

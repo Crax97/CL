@@ -16,6 +16,9 @@ public:
 
     void visit_number_expression(Number n) override;
     void visit_string_expression(String s) override;
+    void visit_dict_expression(const std::vector<std::pair<ExprPtr, ExprPtr>>&) override;
+    void visit_list_expression(const ExprList&) override;
+
     void visit_and_expression(const ExprPtr& left, const ExprPtr& right) override;
     void visit_or_expression(const ExprPtr& left, const ExprPtr& right) override;
     void visit_binary_expression(const ExprPtr& left, BinaryOp op, const ExprPtr& right) override;

@@ -37,6 +37,8 @@ static std::map<std::string, TokenType>
 	{ "or", TokenType::Or },
 	{ "fun", TokenType::Fun },
 	{ "module", TokenType::Module },
+	{ "dict", TokenType::Dict },
+	{ "list", TokenType::List },
     };
 
 constexpr static std::string_view IGNORE_CHARS = "\t ";

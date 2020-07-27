@@ -94,11 +94,6 @@ void inject_stdlib_functions(RuntimeEnvPtr env)
     },
 	1);
 
-    static auto dict_impl = std::make_shared<Function>([](const Args& args) {
-	auto dict = std::make_shared<Dictionary>();
-	return RuntimeValue(std::dynamic_pointer_cast<Indexable>(dict));
-    },
-	VAR_ARGS);
     static auto range_impl = std::make_shared<Function>([](const Args& args) {
 	auto begin = args[0].as<Number>();
 	auto end = args[1].as<Number>();
@@ -123,7 +118,6 @@ void inject_stdlib_functions(RuntimeEnvPtr env)
     env->assign("input", RuntimeValue(input_impl));
     env->assign("print", RuntimeValue(print_impl));
     env->assign("repr", RuntimeValue(repr_impl));
-    env->assign("dict", RuntimeValue(dict_impl));
     env->assign("range", RuntimeValue(range_impl));
 }
 void inject_math_functions(RuntimeEnvPtr env)

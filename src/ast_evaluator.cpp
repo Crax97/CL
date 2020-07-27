@@ -17,6 +17,33 @@ void ASTEvaluator::visit_string_expression(String s)
 {
     push(s);
 }
+
+void ASTEvaluator::visit_dict_expression(const std::vector<std::pair<ExprPtr, ExprPtr>>& exprs)
+{
+    auto d = std::make_shared<Dictionary>();
+    for (const auto& e : exprs) {
+	e.first->evaluate(*this);
+	e.second->evaluate(*this);
+
+	auto r = pop();
+	auto l = pop();
+	d->set(l, r);
+    }
+    push(RuntimeValue(d));
+}
+void ASTEvaluator::visit_list_expression(const ExprList& exprs)
+{
+    TODO();
+#if 0
+	auto l = std::make_shared<List>();
+	for(const auto& e : exprs) {
+		e->evaluate(*this);
+		l->push(pop());
+	}
+	push(RuntimeValue(l));
+#endif
+}
+
 void ASTEvaluator::visit_and_expression(const ExprPtr& left, const ExprPtr& right)
 {
     left->evaluate(*this);
