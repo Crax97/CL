@@ -50,10 +50,14 @@ std::string token_type_to_string(TokenType type) noexcept
 	return "!=";
     case TokenType::Left_Brace:
 	return "(";
+    case TokenType::Left_Square_Brace:
+	return "[";
     case TokenType::Left_Curly_Brace:
 	return "{";
     case TokenType::Right_Brace:
 	return ")";
+    case TokenType::Right_Square_Brace:
+	return "]";
     case TokenType::Right_Curly_Brace:
 	return "}";
     case TokenType::Less:

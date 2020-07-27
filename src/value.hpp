@@ -145,7 +145,7 @@ private:
 
 public:
     void set(const RuntimeValue& s, RuntimeValue v) override { m_map[s] = v; }
-    RuntimeValue& get(const RuntimeValue& s) override { return m_map[s.as<String>()]; }
+    RuntimeValue& get(const RuntimeValue& s) override { return m_map[s]; }
     virtual std::string to_string() override;
     virtual std::string string_repr() override;
 };

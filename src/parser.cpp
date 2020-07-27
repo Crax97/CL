@@ -401,19 +401,28 @@ ExprPtr Parser::call()
 ExprPtr Parser::assign()
 {
     auto expr = literal();
-    if (match(TokenType::Dot)) {
-	while (match(TokenType::Dot)) {
-	    consume(TokenType::Dot);
-	    auto next = consume(TokenType::Identifier).get<std::string>();
+    if (match(TokenType::Dot, TokenType::Left_Square_Brace)) {
+	while (match(TokenType::Dot, TokenType::Left_Square_Brace)) {
+	    ExprPtr what = nullptr;
+	    if (match(TokenType::Left_Square_Brace)) {
+		consume(TokenType::Left_Square_Brace);
+		what = expression();
+		consume(TokenType::Right_Square_Brace);
+	    } else {
+		consume(TokenType::Dot);
+		auto next = consume(TokenType::Identifier).get<std::string>();
+		what = std::make_unique<StringExpression>(next);
+	    }
 	    if (match(TokenType::Assign)) {
 		consume(TokenType::Assign);
-		expr = std::make_unique<SetExpression>(expr, std::make_unique<StringExpression>(next), expression());
+		expr = std::make_unique<SetExpression>(expr, what, expression());
 	    } else {
-		expr = std::make_unique<GetExpression>(expr, std::make_unique<StringExpression>(next));
+		expr = std::make_unique<GetExpression>(expr, what);
 	    }
 	}
 	return expr;
     }
+
     while (match(TokenType::Assign)) {
 	auto prev = previous();
 	next();
