@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <ios>
+#include <memory>
 #include <sstream>
 #include <variant>
 
@@ -30,8 +31,8 @@ std::string addr_to_hex_str(const T& el)
 
 namespace Calculator {
 struct NegateVisitor {
+    RawValue operator()(bool b) { return !b; }
     RawValue operator()(const Number v) { return -v; }
-
     template <class T>
     RawValue operator()(const T& _v)
     {
@@ -41,6 +42,7 @@ struct NegateVisitor {
 
 struct StringVisitor {
     std::string operator()(const std::monostate v) { return "nool"; }
+    std::string operator()(bool b) { return std::to_string(b); }
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
     std::string operator()(const Module& mod) { return "Module " + addr_to_hex_str(mod); }
     std::string operator()(const IndexablePtr& ptr) { return ptr->to_string(); }
@@ -55,7 +57,8 @@ struct StringVisitor {
 };
 
 struct StringRepresentationVisitor {
-    std::string operator()(const std::monostate v) { return "void"; }
+    std::string operator()(const std::monostate v) { return "nool"; }
+    std::string operator()(bool b) { return std::to_string(b); }
     std::string operator()(const Number v)
     {
 	return std::to_string(v);
@@ -66,23 +69,28 @@ struct StringRepresentationVisitor {
 };
 
 struct TruthinessVisitor {
+    bool operator()(bool b) { return b; }
     bool operator()(const Number v) { return v == 1.0; }
     template <class T>
     bool operator()(const T& _v) { return false; }
 };
 
 struct EqualityOperator {
+    bool operator()(bool b, bool l) { return b == l; }
     bool operator()(const Number v, const Number o) { return v == o; }
     bool operator()(const std::monostate v, const std::monostate o) { return true; }
-    bool operator()(const CallablePtr* l, const CallablePtr* r) { return l == r; }
+    bool operator()(const CallablePtr& l, const CallablePtr& r) { return l == r; }
+    bool operator()(const IndexablePtr& l, const IndexablePtr& r) { return l == r; }
     bool operator()(const String& l, const String& r) { return l == r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
 };
 struct NegatedEqualityOperator {
+    bool operator()(bool b, bool l) { return b != l; }
     bool operator()(const Number v, const Number o) { return v != o; }
-    bool operator()(const std::monostate v, const std::monostate o) { return true; }
-    bool operator()(const CallablePtr* l, const CallablePtr* r) { return l != r; }
+    bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const CallablePtr& l, const CallablePtr& r) { return l != r; }
+    bool operator()(const IndexablePtr& l, const IndexablePtr& r) { return l != r; }
     bool operator()(const String& l, const String& r) { return l != r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
@@ -90,10 +98,13 @@ struct NegatedEqualityOperator {
 
 struct LessThanOperator {
     bool operator()(const Number v, const Number o) { return v < o; }
-    bool operator()(const std::monostate v, const std::monostate o) { return true; }
+    bool operator()(const std::monostate v, const std::monostate o) { return false; }
     bool operator()(const String& l, const String& r) { return l < r; }
     template <class T, class V>
-    bool operator()(const T& _t, const V& _v) { return false; }
+    bool operator()(const T& _t, const V& _v)
+    {
+	return reinterpret_cast<uint64_t>(&_t) < reinterpret_cast<uint64_t>(&_v);
+    }
 };
 struct GreaterThanOperator {
     bool operator()(const Number v, const Number o) { return v > o; }
@@ -218,22 +229,15 @@ bool RuntimeValue::operator>=(const RuntimeValue& other) const
 
 std::string RuntimeValue::to_string() const noexcept
 {
-    // Ew hacks
     return std::visit(StringVisitor {}, m_value);
 }
 
 std::string RuntimeValue::string_representation() const noexcept
 {
-    std::stringstream sstr;
-    sstr << "{\n";
-    for (const auto& entries : m_map) {
-	sstr << "\t" << entries.first.to_string() << " : " << entries.second.to_string() << ",\n";
-    }
-    sstr << "}";
-    return sstr.str();
+    return std::visit(StringRepresentationVisitor {}, m_value);
 }
 
-RawValue& RuntimeValue::raw_value() { return m_value; }
+const RawValue& RuntimeValue::raw_value() const noexcept { return m_value; }
 RuntimeValue& Module::get(const RuntimeValue& what)
 {
     if (!what.is<String>()) {
@@ -247,11 +251,11 @@ std::string Module::string_repr() { return "module " + m_env->to_string(); }
 
 Dictionary::Dictionary()
 {
-    m_map[RuntimeValue("contains")] = RuntimeValue(
-	std::make_shared<Function>([this](const Args& args) {
-	    return m_map.find(args[0]) != m_map.end();
+    m_map["contains"] = RuntimeValue(std::dynamic_pointer_cast<Callable>(std::make_shared<Function>(
+	[this](const Args& args) {
+	    return m_map.find(args[0].raw_value()) != m_map.end();
 	},
-	    1));
+	1)));
 }
 std::string Dictionary::to_string() { return "Dictionary " + addr_to_hex_str(*this); }
 std::string Dictionary::string_repr()
@@ -259,7 +263,7 @@ std::string Dictionary::string_repr()
     std::stringstream stream;
     stream << " {\n";
     for (const auto& pair : m_map) {
-	stream << "\t" << pair.first.to_string() << " : " << pair.second.to_string() << "\n";
+	stream << "\t" << std::visit(StringVisitor {}, pair.first) << " : " << pair.second.to_string() << "\n";
     }
     stream << "}";
     return "dict " + stream.str();

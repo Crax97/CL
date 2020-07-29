@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #define TODO()                                                                 \
@@ -32,7 +33,6 @@ using IndexablePtr = std::shared_ptr<Indexable>;
 
 using Number = double;
 using String = std::string;
-using Dict = std::map<RuntimeValue, RuntimeValue>;
 using Args = std::vector<RuntimeValue>;
 using Names = std::vector<std::string>;
 using ExprPtr = std::shared_ptr<Expression>;

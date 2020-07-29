@@ -49,7 +49,7 @@ void ASTEvaluator::visit_and_expression(const ExprPtr& left, const ExprPtr& righ
     left->evaluate(*this);
     auto l_result = pop();
     if (!l_result.is_truthy()) {
-	push(0);
+	push(RuntimeValue(false));
     } else {
 	right->evaluate(*this);
     }
@@ -59,7 +59,7 @@ void ASTEvaluator::visit_or_expression(const ExprPtr& left, const ExprPtr& right
     left->evaluate(*this);
     auto l_result = pop();
     if (l_result.is_truthy()) {
-	push(1);
+	push(RuntimeValue(true));
     } else {
 	right->evaluate(*this);
     }
@@ -91,22 +91,22 @@ void ASTEvaluator::visit_binary_expression(const ExprPtr& left, BinaryOp op, con
 	push(l_val.modulo(r_val));
 	break;
     case BinaryOp::Less:
-	push(l_val < r_val);
+	push(RuntimeValue((bool)(l_val < r_val)));
 	break;
     case BinaryOp::Less_Equals:
-	push(l_val <= r_val);
+	push(RuntimeValue((bool)(l_val <= r_val)));
 	break;
     case BinaryOp::Greater:
-	push(l_val > r_val);
+	push(RuntimeValue((bool)(l_val > r_val)));
 	break;
     case BinaryOp::Greater_Equals:
-	push(l_val >= r_val);
+	push(RuntimeValue((bool)(l_val >= r_val)));
 	break;
     case BinaryOp::Equals:
-	push(l_val == r_val);
+	push(RuntimeValue((bool)(l_val == r_val)));
 	break;
     case BinaryOp::Not_Equals:
-	push(l_val != r_val);
+	push(RuntimeValue((bool)(l_val != r_val)));
 	break;
     case BinaryOp::And:
     case BinaryOp::Or:

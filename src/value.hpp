@@ -12,8 +12,14 @@
 #include <variant>
 #include <vector>
 
+namespace std {
+template <>
+struct hash<Calculator::RuntimeValue> {
+    const size_t operator()(const Calculator::RuntimeValue& m);
+};
+};
+
 namespace Calculator {
-class RuntimeValue;
 
 constexpr uint8_t VAR_ARGS = 0xFF;
 
@@ -41,13 +47,11 @@ public:
     virtual std::string string_repr() const noexcept { return to_string(); }
 };
 
-using RawValue = std::variant<std::monostate, Number, String, IndexablePtr, CallablePtr>;
-
+using RawValue = std::variant<std::monostate, bool, Number, String, IndexablePtr, CallablePtr>;
 class RuntimeValue {
 private:
     RawValue m_value;
     bool m_constant { false };
-    Dict m_map;
 
 public:
     Number as_number() const;
@@ -112,11 +116,15 @@ public:
 	return get_property(RuntimeValue(name));
     }
 
-    RawValue& raw_value();
+    const RawValue& raw_value() const noexcept;
 
     std::string to_string() const noexcept;
     std::string string_representation() const noexcept;
 
+    explicit RuntimeValue(bool b) noexcept
+	: m_value(b)
+    {
+    }
     RuntimeValue(Number n) noexcept
 	: m_value(n)
     {
@@ -141,17 +149,21 @@ public:
 
 class Dictionary : public Indexable {
 private:
+    using Dict = std::unordered_map<RawValue, RuntimeValue>;
     Dict m_map;
 
 public:
     Dictionary();
-    void set(const RuntimeValue& s, RuntimeValue v) override { m_map[s] = v; }
+    void set(const RuntimeValue& s, RuntimeValue v) override
+    {
+	m_map[s.raw_value()] = v;
+    }
     RuntimeValue& get(const RuntimeValue& s) override
     {
-	if (m_map.find(s) != m_map.end()) {
-	    return m_map[s];
+	if (m_map.find(s.raw_value()) != m_map.end()) {
+	    return m_map.at(s.raw_value());
 	}
-	throw RuntimeException(s.to_string() + " is not bound in this dictionary");
+	throw RuntimeException(s.to_string() + " not bound in dictionary\n");
     }
     virtual std::string to_string() override;
     virtual std::string string_repr() override;
