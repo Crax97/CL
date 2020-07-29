@@ -100,6 +100,10 @@ std::string token_type_to_string(TokenType type) noexcept
 	return "for";
     case TokenType::Return:
 	return "return";
+    case TokenType::Continue:
+	return "continue";
+    case TokenType::Break:
+	return "break";
     case TokenType::Self:
 	return "self";
     case TokenType::Double_Dots:

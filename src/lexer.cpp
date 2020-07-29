@@ -33,6 +33,8 @@ static std::map<std::string, TokenType>
 	{ "for", TokenType::For },
 	{ "in", TokenType::In },
 	{ "return", TokenType::Return },
+	{ "continue", TokenType::Continue },
+	{ "break", TokenType::Break },
 	{ "and", TokenType::And },
 	{ "or", TokenType::Or },
 	{ "fun", TokenType::Fun },

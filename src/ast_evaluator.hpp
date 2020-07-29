@@ -52,7 +52,8 @@ private:
     void visit_fun_def(const Names& names, const ExprPtr& body) override;
     void visit_block_expression(const ExprList& block) override;
     void visit_return_expression(const ExprPtr& expr) override;
-
+    void visit_break_expression() override;
+    void visit_continue_expression() override;
     void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch)
 	override;
     void visit_while_expression(const ExprPtr& cond, const ExprPtr& body) override;

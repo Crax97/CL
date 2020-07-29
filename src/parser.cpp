@@ -184,6 +184,10 @@ ExprPtr Parser::expression()
 	return for_expression();
     } else if (match(TokenType::If)) {
 	return if_expression();
+    } else if (match(TokenType::Continue)) {
+	return std::make_shared<ContinueExpression>();
+    } else if (match(TokenType::Break)) {
+	return std::make_shared<BreakExpression>();
     }
     return and_expr();
 }

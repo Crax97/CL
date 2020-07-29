@@ -112,6 +112,8 @@ enum class TokenType {
     For,
     In,
     Return,
+    Continue,
+    Break,
     Class,
     Dict,
     List,

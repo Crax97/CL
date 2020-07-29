@@ -192,6 +192,14 @@ void ASTEvaluator::visit_return_expression(const ExprPtr& expr)
     expr->evaluate(*this);
     set_flag(FLAGS::RETURN);
 }
+void ASTEvaluator::visit_break_expression()
+{
+    set_flag(FLAGS::BREAK);
+}
+void ASTEvaluator::visit_continue_expression()
+{
+    set_flag(FLAGS::CONTINUE);
+}
 void ASTEvaluator::visit_set_expression(const ExprPtr& obj, const ExprPtr& name, const ExprPtr& val)
 {
     obj->evaluate(*this);

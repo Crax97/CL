@@ -24,6 +24,8 @@ public:
     virtual void visit_fun_def(const Names& names, const ExprPtr& body) = 0;
     virtual void visit_block_expression(const ExprList& block) = 0;
     virtual void visit_return_expression(const ExprPtr& expr) = 0;
+    virtual void visit_break_expression() = 0;
+    virtual void visit_continue_expression() = 0;
     virtual void visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch) = 0;
     virtual void visit_while_expression(const ExprPtr& cond, const ExprPtr& body) = 0;
     virtual void visit_for_expression(const std::string& name, const ExprPtr& iterator, const ExprPtr& body) = 0;
@@ -275,6 +277,16 @@ public:
     {
     }
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_return_expression(m_expr); }
+};
+
+class BreakExpression : public Expression {
+public:
+    void evaluate(Evaluator& evaluator) const override { evaluator.visit_break_expression(); }
+};
+
+class ContinueExpression : public Expression {
+public:
+    void evaluate(Evaluator& evaluator) const override { evaluator.visit_continue_expression(); }
 };
 
 class SetExpression : public Expression {

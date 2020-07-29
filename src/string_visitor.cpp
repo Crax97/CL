@@ -110,6 +110,14 @@ void DebugPrinterEvaluator::visit_return_expression(const ExprPtr& expr)
     expr->evaluate(*this);
     push("return " + pop());
 }
+void DebugPrinterEvaluator::visit_break_expression()
+{
+    push("break");
+}
+void DebugPrinterEvaluator::visit_continue_expression()
+{
+    push("continue");
+}
 void DebugPrinterEvaluator::visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch)
 {
 
