@@ -33,15 +33,12 @@ void ASTEvaluator::visit_dict_expression(const std::vector<std::pair<ExprPtr, Ex
 }
 void ASTEvaluator::visit_list_expression(const ExprList& exprs)
 {
-    TODO();
-#if 0
-	auto l = std::make_shared<List>();
-	for(const auto& e : exprs) {
-		e->evaluate(*this);
-		l->push(pop());
-	}
-	push(RuntimeValue(l));
-#endif
+    auto l = std::make_shared<List>();
+    for (const auto& e : exprs) {
+	e->evaluate(*this);
+	l->append(pop());
+    }
+    push(RuntimeValue(l));
 }
 
 void ASTEvaluator::visit_and_expression(const ExprPtr& left, const ExprPtr& right)

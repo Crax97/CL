@@ -147,9 +147,63 @@ public:
     }
 };
 
+using Dict = std::unordered_map<RawValue, RuntimeValue>;
+using Lis = std::vector<RuntimeValue>;
+class List : public Indexable {
+private:
+    Lis m_list;
+    Dict m_funs;
+
+public:
+    List();
+    void set(const RuntimeValue& s, RuntimeValue v) override
+    {
+	size_t n = static_cast<size_t>(s.as<Number>());
+	if (n < m_list.size()) {
+	    m_list[n] = v;
+	} else {
+	    throw RuntimeException("Tried indexing outside this list's range");
+	}
+    }
+
+    void append(const RuntimeValue& s)
+    {
+	m_list.push_back(s);
+    }
+
+    RuntimeValue& get(const RuntimeValue& s) override
+    {
+	if (!s.is<Number>()) {
+	    if (m_funs.find(s.raw_value()) == m_funs.end()) {
+		throw RuntimeException(s.to_string() + " is not bound. ");
+	    }
+	    return m_funs.at(s.raw_value());
+	}
+	size_t n = static_cast<size_t>(s.as<Number>());
+	if (n < m_list.size()) {
+	    return m_list[n];
+	} else {
+	    throw RuntimeException("Tried indexing outside this list's range");
+	}
+    }
+    virtual std::string to_string() override
+    {
+	std::stringstream stream;
+	stream << "[";
+	for (const auto& v : m_list) {
+	    stream << v.to_string() << ", ";
+	}
+	stream << "]";
+	return stream.str();
+    }
+    virtual std::string string_repr() override
+    {
+	return "list " + to_string();
+    }
+};
+
 class Dictionary : public Indexable {
 private:
-    using Dict = std::unordered_map<RawValue, RuntimeValue>;
     Dict m_map;
 
 public:

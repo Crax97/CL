@@ -499,12 +499,14 @@ ExprPtr Parser::dict_expression()
 ExprPtr Parser::list_expression()
 {
     consume(TokenType::List);
-    consume(TokenType::Left_Brace);
+    consume(TokenType::Left_Square_Brace);
     auto expressions = ExprList();
-    while (!match(TokenType::Right_Brace)) {
+    while (!match(TokenType::Right_Square_Brace)) {
 	expressions.push_back(expression());
+	if (match(TokenType::Comma))
+	    consume(TokenType::Comma);
     }
-    consume(TokenType::Right_Brace);
+    consume(TokenType::Right_Square_Brace);
 
     return std::make_unique<ListExpression>(expressions);
 }

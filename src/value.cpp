@@ -7,6 +7,7 @@
 #include <cmath>
 #include <ios>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <variant>
 
@@ -248,6 +249,28 @@ RuntimeValue& Module::get(const RuntimeValue& what)
 
 std::string Module::to_string() { return "Module " + addr_to_hex_str(*this); }
 std::string Module::string_repr() { return "module " + m_env->to_string(); }
+
+List::List()
+{
+    m_funs["find"] = RuntimeValue(std::make_shared<Function>(
+	[this](const Args& args) {
+	    auto it = std::find(m_list.begin(), m_list.end(), args[0]);
+	    if (it == m_list.end())
+		return static_cast<Number>(-1);
+	    return static_cast<Number>(std::distance(m_list.begin(), it));
+	},
+	1));
+    m_funs["contains"] = RuntimeValue(std::make_shared<Function>(
+	[this](const Args& args) {
+	    auto it = std::find(m_list.begin(), m_list.end(), args[0]);
+	    return it != m_list.end();
+	},
+	1));
+    m_funs["append"] = RuntimeValue(std::make_shared<VoidFunction>([this](const Args& args) {
+	this->append(args[0]);
+    },
+	1));
+}
 
 Dictionary::Dictionary()
 {
