@@ -25,7 +25,7 @@ BinaryOp token_type_to_binary_opcode(TokenType type)
 	return BinaryOp::Division;
 	break;
     case TokenType::Percent:
-	return BinaryOp::Division;
+	return BinaryOp::Modulo;
 	break;
     case TokenType::Equals:
 	return BinaryOp::Equals;
