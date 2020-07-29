@@ -172,9 +172,11 @@ void ASTEvaluator::visit_block_expression(const ExprList& block)
 {
     auto env = std::make_shared<StackedEnvironment>(m_env);
     ASTEvaluator eval(env);
-    std::for_each(block.begin(), block.end(), [&eval](const ExprPtr& expr) {
+    for (const auto& expr : block) {
 	expr->evaluate(eval);
-    });
+	if (is_any_flag_set())
+	    break;
+    }
     if (eval.has_value()) {
 	push(eval.get_result());
     }
@@ -187,7 +189,8 @@ RuntimeValue ASTEvaluator::run_expression(const ExprPtr& expr)
 }
 void ASTEvaluator::visit_return_expression(const ExprPtr& expr)
 {
-    TODO();
+    expr->evaluate(*this);
+    set_flag(FLAGS::RETURN);
 }
 void ASTEvaluator::visit_set_expression(const ExprPtr& obj, const ExprPtr& name, const ExprPtr& val)
 {
@@ -225,6 +228,10 @@ void ASTEvaluator::visit_while_expression(const ExprPtr& cond, const ExprPtr& bo
     cond->evaluate(*this);
     while (pop().is_truthy()) {
 	body->evaluate(*this);
+	if (is_flag_set(FLAGS::RETURN) || is_flag_set(FLAGS::BREAK))
+	    break;
+	else if (is_flag_set(FLAGS::CONTINUE))
+	    continue;
 	cond->evaluate(*this);
     }
 }
@@ -240,6 +247,10 @@ void ASTEvaluator::visit_for_expression(const std::string& name, const ExprPtr& 
 	auto val = next_fun->call().value();
 	m_env->assign(name, val, false);
 	body->evaluate(*this);
+	if (is_flag_set(FLAGS::RETURN) || is_flag_set(FLAGS::BREAK))
+	    break;
+	else if (is_flag_set(FLAGS::CONTINUE))
+	    continue;
     }
 }
 
@@ -263,5 +274,4 @@ std::optional<RuntimeValue> ASTFunction::call(const Args& args)
     ASTEvaluator evaluator(env);
     return evaluator.run_expression(m_body);
 }
-
 }

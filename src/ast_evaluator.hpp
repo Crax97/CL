@@ -10,7 +10,31 @@
 namespace Calculator {
 class ASTEvaluator : public StackMachine<RuntimeValue>, public Evaluator {
 private:
+    enum class FLAGS {
+	NONE = 0x00,
+	RETURN = 0x01,
+	CONTINUE = 0x02,
+	BREAK = 0x04,
+
+    };
     std::shared_ptr<StackedEnvironment> m_env;
+    FLAGS m_flags = FLAGS::NONE;
+
+    bool is_flag_set(FLAGS flag)
+    {
+	if (m_flags == flag) {
+	    m_flags = FLAGS::NONE;
+	    return true;
+	}
+	return false;
+    }
+
+    bool is_any_flag_set() { return m_flags != FLAGS::NONE; }
+    void set_flag(FLAGS flag)
+    {
+	m_flags = flag;
+    }
+
     void visit_number_expression(Number n) override;
     void visit_string_expression(String s) override;
     void visit_dict_expression(const std::vector<std::pair<ExprPtr, ExprPtr>>&) override;
@@ -76,5 +100,4 @@ public:
 	return "fun( " + name_string + " ) -> " + eval.get_result();
     }
 };
-
 }
