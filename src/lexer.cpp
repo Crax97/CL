@@ -43,7 +43,7 @@ static std::map<std::string, TokenType>
 	{ "list", TokenType::List },
     };
 
-constexpr static std::string_view IGNORE_CHARS = "\t ";
+constexpr static std::string_view IGNORE_CHARS = "\n\t ";
 
 Lexer::Lexer(std::string& source)
     : m_source(source)
@@ -227,8 +227,6 @@ Token Lexer::try_lex_one()
     auto token_line = m_current_line;
 
     switch (ch) {
-    case '\n':
-	return make_token(TokenType::Newline);
     case '+':
 	return make_token(TokenType::Plus);
     case '-':
