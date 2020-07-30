@@ -151,11 +151,11 @@ void Parser::throw_exception(const std::string& why, const Token& cause)
 {
     std::stringstream stream;
     stream << "Syntax error "
-	   << "at " << cause.get_line() << ":" << cause.get_column() << ": " << why << "\n";
+	   << "at " << cause.get_line() << ":" << cause.get_column() - 1 << ": " << why << "\n";
     std::string dashes = std::string(cause.get_source_line().size(), '-');
-    dashes[cause.get_column() - 2] = '^';
-    stream << "| " << cause.get_source_line() << "\n";
-    stream << "|-" << dashes << "\n";
+    dashes[cause.get_column()] = '^';
+    stream << "│ " << cause.get_source_line() << "\n";
+    stream << "└>" << dashes << "\n";
     throw ParsingException(cause, stream.str());
 }
 

@@ -27,7 +27,8 @@ void run_script(const std::string& script_path, std::shared_ptr<Calculator::Stac
 	content += line + "\n";
     }
 
-    auto parser = Calculator::Parser(Calculator::Lexer(content));
+    auto stream = std::stringstream(content);
+    auto parser = Calculator::Parser(Calculator::Lexer(stream));
     auto tree = parser.parse_all();
     auto evaluator = Calculator::ASTEvaluator(env);
     std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
@@ -61,7 +62,8 @@ void run_from_cli(std::shared_ptr<Calculator::StackedEnvironment> env)
     while (true) {
 	try {
 	    auto line = read_from_console();
-	    auto parser = Calculator::Parser(Calculator::Lexer(line));
+	    auto stream = std::stringstream(line);
+	    auto parser = Calculator::Parser(Calculator::Lexer(stream));
 	    auto tree = parser.parse_all();
 	    auto evaluator = Calculator::ASTEvaluator(env);
 	    if (tree.size() > 0) {

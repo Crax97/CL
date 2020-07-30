@@ -55,7 +55,8 @@ void inject_import_function(RuntimeEnvPtr parent_env)
 		content += line;
 	    }
 
-	    auto parser = Parser(Lexer(content));
+	    auto stream = std::stringstream(content);
+	    auto parser = Parser(Lexer(stream));
 	    auto tree = parser.parse_all();
 	    auto env = std::make_shared<StackedEnvironment>(parent_env);
 	    ASTEvaluator evaluator(env);

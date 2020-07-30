@@ -3,9 +3,11 @@
 #include "exceptions.hpp"
 #include "tokens.hpp"
 
+#include <cstdio>
 #include <cstdlib>
 #include <map>
 #include <sstream>
+#include <string>
 #include <string_view>
 
 namespace Calculator {
@@ -45,58 +47,31 @@ static std::map<std::string, TokenType>
 
 constexpr static std::string_view IGNORE_CHARS = "\n\t ";
 
-Lexer::Lexer(std::string& source)
-    : m_source(source)
-    , m_current_line { 1 }
-    , m_current_column { 1 }
-    , m_current_character(m_source.cbegin())
+char Lexer::get_next()
 {
-    update_line_view();
-}
-
-char Lexer::advance_stream()
-{
-    if (m_current_character == m_source.cend()) {
-	m_done_lexing = true;
-	return 0;
-    }
-    auto ch = *m_current_character++;
-    update_col_and_line(ch);
-    return ch;
-}
-char Lexer::peek_character()
-{
-    return *m_current_character;
-}
-char Lexer::previous_character()
-{
-    m_current_character--;
-    m_current_column--;
-    if (peek_character() == '\n')
-	m_current_line--;
-    return peek_character();
-}
-
-void Lexer::update_col_and_line(char ch) noexcept
-{
+    char c = m_source.get();
     m_current_column++;
-    if (ch == '\n') {
+    if (c == '\n') {
 	m_current_line++;
 	m_current_column = 1;
 	update_line_view();
     }
+    return c;
+}
+
+char Lexer::peekc() { return m_source.peek(); }
+void Lexer::prev()
+{
+    m_current_column--;
+    m_source.unget();
 }
 
 void Lexer::update_line_view()
 {
     m_current_source_line = "";
-    auto begin = std::distance(m_source.cbegin(), m_current_character);
-    auto next_newline = m_current_source_line.find('\n', begin);
-    if (next_newline == std::string_view::npos) {
-	next_newline = std::distance(m_current_character, m_source.cend());
-    }
-    auto size = next_newline - begin;
-    m_current_source_line = m_source.substr(begin, size);
+    auto pos = m_source.tellg();
+    std::getline(m_source, m_current_source_line);
+    m_source.seekg(pos);
 }
 
 template <class... T>
@@ -108,8 +83,8 @@ Token Lexer::make_token(T... params)
 Token Lexer::check_for_alternative(char expected, TokenType first,
     TokenType second)
 {
-    if (peek_character() == expected) {
-	advance_stream();
+    if (peekc() == expected) {
+	m_source.get();
 	return make_token(second);
     }
     return make_token(first);
@@ -117,10 +92,10 @@ Token Lexer::check_for_alternative(char expected, TokenType first,
 Token Lexer::parse_string(char delim)
 {
     String s;
-    char c = advance_stream();
+    char c = get_next();
     while (c != delim) {
 	if (c == '\\') {
-	    char selector = advance_stream();
+	    char selector = get_next();
 	    switch (selector) {
 	    case 'n':
 		c = '\n';
@@ -160,7 +135,7 @@ Token Lexer::parse_string(char delim)
 	    }
 	}
 	s += c;
-	c = advance_stream();
+	c = get_next();
 	if (is_at_end()) {
 	    throw LexerException("Unexpected EOF while parsing string!", m_current_source_line, m_current_line, m_current_column);
 	}
@@ -171,12 +146,12 @@ Token Lexer::parse_string(char delim)
 Token Lexer::parse_number()
 {
     std::string number_string;
-    char ch = advance_stream();
+    char ch = get_next();
     while ((isdigit(ch) || ch == '.') && !is_at_end()) {
 	number_string += ch;
-	ch = advance_stream();
+	ch = get_next();
     }
-    previous_character();
+    prev();
     Number n = std::stod(number_string);
     return make_token(n);
 }
@@ -184,13 +159,13 @@ Token Lexer::parse_number()
 Token Lexer::parse_keyword()
 {
     std::string token_string;
-    auto ch = advance_stream();
+    auto ch = get_next();
     while ((isalpha(ch) || ch == '_' || isdigit(ch) || ch == ':') && !is_at_end()) {
 	token_string += ch;
-	ch = advance_stream();
+	ch = get_next();
     }
 
-    previous_character();
+    prev();
 
     auto it = token_map.find(token_string);
     if (it != token_map.end()) {
@@ -202,25 +177,25 @@ Token Lexer::parse_keyword()
 
 void Lexer::ignore_comment()
 {
-    char ch = advance_stream();
-    while (ch != '\n' && !m_done_lexing) {
-	ch = advance_stream();
+    char ch = get_next();
+    while (ch != '\n' && !m_done_lexing && ch != EOF) {
+	ch = get_next();
     }
 }
 
 Token Lexer::try_lex_one()
 {
     auto ch = ' ';
-
     do {
-	ch = advance_stream();
+	ch = get_next();
 	while (ch == '#') {
 	    ignore_comment();
-	    ch = advance_stream();
+	    ch = get_next();
 	}
     } while (IGNORE_CHARS.find(ch) != std::string::npos && !m_done_lexing);
 
-    if (m_done_lexing) {
+    if (ch == EOF) {
+	m_done_lexing = true;
 	return make_token(TokenType::Eof);
     }
     auto token_column = m_current_column;
@@ -273,11 +248,11 @@ Token Lexer::try_lex_one()
 	return parse_string(ch);
     }
     if (isdigit(ch)) {
-	previous_character();
+	m_source.unget();
 	return parse_number();
     }
     if (isalpha(ch) || ch == '_') {
-	previous_character();
+	m_source.unget();
 	return parse_keyword();
     }
 
