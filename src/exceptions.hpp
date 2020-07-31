@@ -30,5 +30,10 @@ public:
     {
     }
 };
+class FileNotFoundException : public CLException {
+public:
+    explicit FileNotFoundException(const std::string& path) :
+            CLException("File not found: " + path) {}
+};
 
 } // namespace CL

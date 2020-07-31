@@ -6,6 +6,7 @@
 #include "function_callable.hpp"
 #include "value.hpp"
 #include "script.h"
+#include "helpers.h"
 
 #include <cmath>
 #include <fstream>
@@ -39,6 +40,29 @@ public:
 	auto v = m_current;
 	m_current += m_step;
 	return RuntimeValue(v);
+    }
+};
+
+class FileIterator {
+private:
+    std::vector<std::string> m_content;
+    std::vector<std::string>::iterator m_it;
+public:
+    explicit FileIterator(std::vector<std::string> content) :
+    m_content(std::move(content))
+    {
+        m_it = m_content.begin();
+    }
+    [[nodiscard]]
+    bool has_next() const
+    {
+        return m_it != m_content.end();
+    }
+
+    [[nodiscard]]
+    RuntimeValue next()
+    {
+        return *m_it ++;
     }
 };
 
@@ -99,11 +123,31 @@ void inject_stdlib_functions(const RuntimeEnvPtr& env)
 	return dict;
     },
 	3);
+
+    static auto open_impl = std::make_shared<Function>([](const Args& args){
+            auto file_path = args[0].as<String>();
+            auto lines = Helpers::read_into_lines(file_path);
+            auto file_it = std::make_shared<FileIterator>(lines);
+
+            auto dict = RuntimeValue(std::make_shared<Dictionary>());
+            auto has_next_lambda = std::make_shared<Function>([file_it](const Args& args) {
+                                                                  return file_it->has_next();
+                                                              },
+                                                              0);
+            auto next_lambda = std::make_shared<Function>([file_it](const Args& args) {
+                                                              return file_it->next();
+                                                          },
+                                                          0);
+            dict.set_named("__has_next", RuntimeValue(has_next_lambda));
+            dict.set_named("__next", RuntimeValue(next_lambda));
+            return dict;
+        }, 1);
     env->assign("exit", RuntimeValue(exit_impl));
     env->assign("input", RuntimeValue(input_impl));
     env->assign("print", RuntimeValue(print_impl));
     env->assign("repr", RuntimeValue(repr_impl));
     env->assign("range", RuntimeValue(range_impl));
+    env->assign("open", RuntimeValue(open_impl));
 }
 void inject_math_functions(const RuntimeEnvPtr& env)
 {
