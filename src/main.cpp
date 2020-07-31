@@ -9,25 +9,13 @@
 #include "commons.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
-#include "lexer.hpp"
-#include "parser.hpp"
 #include "std_lib.hpp"
+#include "script.h"
 
 void run_script(const std::string& script_path, std::shared_ptr<Calculator::StackedEnvironment> env)
 {
-    std::ifstream file(script_path);
-    std::string content, line;
-    while (std::getline(file, line)) {
-	content += line + "\n";
-    }
-
-    auto stream = std::stringstream(content);
-    auto parser = Calculator::Parser(Calculator::Lexer(stream));
-    auto tree = parser.parse_all();
-    auto evaluator = Calculator::ASTEvaluator(std::move(env));
-    std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
-	ptr->evaluate(evaluator);
-    });
+    auto script = Calculator::Script::from_file(script_path, env);
+    script.run();
 }
 
 std::string read_from_console()
@@ -54,25 +42,16 @@ std::string read_from_console()
 void run_from_cli(const Calculator::RuntimeEnvPtr& env)
 {
     while (true) {
-	try {
-	    auto line = read_from_console();
-	    auto stream = std::stringstream(line);
-	    auto parser = Calculator::Parser(Calculator::Lexer(stream));
-	    auto tree = parser.parse_all();
-	    auto evaluator = Calculator::ASTEvaluator(env);
-	    if (!tree.empty() > 0) {
-		std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
-		    ptr->evaluate(evaluator);
-		});
-        auto result = evaluator.get_result();
-		if (result.has_value()) {
-		    std::cout << result.value().to_string() << "\n";
-		}
-	    }
-	} catch (Calculator::CLException& ex) {
-	    std::cerr << "Error: " << ex.get_message() << "\n";
-	    std::cout << "> ";
-	}
+        try {
+            auto source = read_from_console();
+            auto script = Calculator::Script::from_source(source, env);
+            auto result = script.run();
+            if (result.has_value()) {
+                std::cout << result.value().to_string() << "\n";
+            }
+        } catch (Calculator::CLException& ex) {
+            std::cerr << "Error: " << ex.get_message() << "\n";
+        }
     }
 }
 

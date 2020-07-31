@@ -4,9 +4,8 @@
 #include "environment.hpp"
 #include "exceptions.hpp"
 #include "function_callable.hpp"
-#include "lexer.hpp"
-#include "parser.hpp"
 #include "value.hpp"
+#include "script.h"
 
 #include <cmath>
 #include <fstream>
@@ -48,26 +47,8 @@ void inject_import_function(const RuntimeEnvPtr& parent_env)
     static auto import_impl = std::make_shared<Function>(
 	[parent_env](const Args& args) {
 	    auto path = args[0].as<String>();
-	    auto file = std::fstream(path);
-	    if (!file.is_open()) {
-		throw RuntimeException("Cannot read file " + path);
-	    }
-
-	    std::string content, line;
-	    while (std::getline(file, line)) {
-		content += line;
-	    }
-
-	    auto stream = std::stringstream(content);
-	    auto parser = Parser(Lexer(stream));
-	    auto tree = parser.parse_all();
-	    auto env = std::make_shared<StackedEnvironment>(parent_env);
-	    ASTEvaluator evaluator(env);
-
-	    for (const auto& expr : tree) {
-		expr->evaluate(evaluator);
-	    }
-	    return evaluator.get_result();
+        auto script = Script::from_file(path);
+	    return script.run();
 	},
 	1);
     parent_env->assign("import", RuntimeValue(import_impl));
