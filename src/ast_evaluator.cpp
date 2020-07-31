@@ -145,24 +145,24 @@ void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
     fun->evaluate(*this);
     auto call = pop();
     if (call.is<CallablePtr>()) {
-	auto callable = call.as_callable();
+	auto callable = call.as<CallablePtr>();
 
 	if (args.size() != callable->arity() && callable->arity() != VAR_ARGS) {
 	    throw RuntimeException(
 		"This callable expects " + std::to_string(callable->arity())
 		+ " arguments, but it got " + std::to_string(args.size()) + "!");
 	}
-	Args evaluated_args;
-	for (const auto& arg : args) {
-	    arg->evaluate(*this);
-	    evaluated_args.push_back(pop());
-	}
-	auto result = callable->call(evaluated_args);
-	if (result.has_value()) {
-	    push(result.value());
-	}
+        Args evaluated_args;
+        for (const auto& arg : args) {
+            arg->evaluate(*this);
+            evaluated_args.push_back(pop());
+        }
+        auto result = callable->call(evaluated_args);
+        if (result.has_value()) {
+            push(result.value());
+        }
     } else {
-	throw RuntimeException(call.to_string() + " is not callable.");
+	    throw RuntimeException(call.to_string() + " is not callable.");
     }
 }
 void ASTEvaluator::visit_fun_def(const Names& names, const ExprPtr& body)
@@ -172,15 +172,7 @@ void ASTEvaluator::visit_fun_def(const Names& names, const ExprPtr& body)
     push(val);
 }
 
-RuntimeValue ASTEvaluator::run_expression(const ExprPtr& expr)
-{
-    expr->evaluate(*this);
-    if (has_value())
-	return pop();
-    return RuntimeValue();
-}
-
-void ASTEvaluator::visit_return_expression(const ExprPtr& expr)
+    void ASTEvaluator::visit_return_expression(const ExprPtr& expr)
 {
     expr->evaluate(*this);
     set_flag(FLAGS::RETURN);
@@ -275,7 +267,7 @@ void ASTEvaluator::visit_module_definition(const ExprList& list)
     auto env = std::make_shared<StackedEnvironment>(m_env);
     auto evaluator = ASTEvaluator(env);
     for (auto& expr : list) {
-	evaluator.run_expression(expr);
+        expr->evaluate(evaluator);
     }
     auto mod = std::make_shared<Module>(env);
     push(std::dynamic_pointer_cast<Indexable>(mod));
@@ -288,10 +280,7 @@ std::optional<RuntimeValue> ASTFunction::call(const Args& args)
 	env->assign(m_arg_names[i], args[i], false);
     }
     ASTEvaluator evaluator(env);
-    evaluator.run_expression(m_body);
-    if (evaluator.has_value()) {
+    m_body->evaluate(evaluator);
 	return evaluator.get_result();
-    }
-    return std::nullopt;
 }
 }

@@ -67,8 +67,12 @@ public:
 	: m_env(env)
     {
     }
-    RuntimeValue run_expression(const ExprPtr& body);
-    RuntimeValue get_result() { return pop(); }
+
+    std::optional<RuntimeValue> get_result() {
+        if (!m_stack.empty())
+            return pop();
+        return std::nullopt;
+    }
 };
 class ASTFunction : public Callable {
 private:

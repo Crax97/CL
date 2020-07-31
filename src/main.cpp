@@ -70,9 +70,9 @@ void run_from_cli(std::shared_ptr<Calculator::StackedEnvironment> env)
 		std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
 		    ptr->evaluate(evaluator);
 		});
-
-		if (evaluator.has_value()) {
-		    std::cout << evaluator.get_result().to_string() << "\n";
+        auto result = evaluator.get_result();
+		if (result.has_value()) {
+		    std::cout << result.value().to_string() << "\n";
 		}
 	    }
 	} catch (Calculator::CLException& ex) {

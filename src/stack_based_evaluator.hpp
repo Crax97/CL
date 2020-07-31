@@ -6,10 +6,8 @@
 namespace Calculator {
 template <class T>
 class StackMachine {
-private:
-    std::stack<T> m_stack;
-
 protected:
+    std::stack<T> m_stack;
     void push(T el) noexcept { m_stack.push(el); }
     T& peek() { return m_stack.top(); }
     T pop()
@@ -23,6 +21,7 @@ protected:
     }
 
 public:
-    bool has_value() const noexcept { return m_stack.size() > 0; }
+    [[nodiscard]]
+    bool has_result() const noexcept { return m_stack.size() > 0; }
 };
 }
