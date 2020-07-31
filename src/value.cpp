@@ -150,7 +150,7 @@ RuntimeValue::as_number() const
 
 CallablePtr RuntimeValue::as_callable() const
 {
-    if (is_callable()) {
+    if (is<CallablePtr>()) {
 	return std::get<CallablePtr>(m_value);
     } else {
 	throw RuntimeException(to_string() + " is not a Callable!");
@@ -162,17 +162,7 @@ bool RuntimeValue::is_truthy() const noexcept
     return std::visit(TruthinessVisitor {}, m_value);
 }
 
-bool RuntimeValue::is_null() const noexcept
-{
-    return std::holds_alternative<std::monostate>(m_value);
-}
-
-bool RuntimeValue::is_callable() const noexcept
-{
-    return std::holds_alternative<CallablePtr>(m_value);
-}
-
-void RuntimeValue::negate()
+    void RuntimeValue::negate()
 {
     auto negated = std::visit(NegateVisitor {}, m_value);
     m_value = negated;
@@ -252,7 +242,7 @@ std::string Module::string_repr() { return "module " + m_env->to_string(); }
 
 List::List()
 {
-    m_funs["find"] = RuntimeValue(std::make_shared<Function>(
+    m_functions["find"] = RuntimeValue(std::make_shared<Function>(
 	[this](const Args& args) {
 	    auto it = std::find(m_list.begin(), m_list.end(), args[0]);
 	    if (it == m_list.end())
@@ -260,16 +250,16 @@ List::List()
 	    return static_cast<Number>(std::distance(m_list.begin(), it));
 	},
 	1));
-    m_funs["contains"] = RuntimeValue(std::make_shared<Function>(
+    m_functions["contains"] = RuntimeValue(std::make_shared<Function>(
 	[this](const Args& args) {
 	    auto it = std::find(m_list.begin(), m_list.end(), args[0]);
 	    return it != m_list.end();
 	},
 	1));
-    m_funs["append"] = RuntimeValue(std::make_shared<VoidFunction>([this](const Args& args) {
+    m_functions["append"] = RuntimeValue(std::make_shared<VoidFunction>([this](const Args& args) {
 	this->append(args[0]);
     },
-	1));
+                                                                        1));
 }
 
 Dictionary::Dictionary()
@@ -292,4 +282,7 @@ std::string Dictionary::string_repr()
     return "dict " + stream.str();
 }
 
+    std::optional<RuntimeValue> Callable::call() {
+        return call(Args());
+    }
 } // namespace CL

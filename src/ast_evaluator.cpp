@@ -2,7 +2,6 @@
 #include "commons.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
-#include "std_lib.hpp"
 #include "value.hpp"
 
 #include <algorithm>
@@ -62,6 +61,8 @@ void ASTEvaluator::visit_or_expression(const ExprPtr& left, const ExprPtr& right
     }
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "UnreachableCode"
 void ASTEvaluator::visit_binary_expression(const ExprPtr& left, BinaryOp op, const ExprPtr& right)
 {
     right->evaluate(*this);
@@ -108,10 +109,11 @@ void ASTEvaluator::visit_binary_expression(const ExprPtr& left, BinaryOp op, con
 	break;
     case BinaryOp::And:
     case BinaryOp::Or:
-	NOT_REACHED();
+	NOT_REACHED()
 	break;
     }
 }
+#pragma clang diagnostic pop
 void ASTEvaluator::visit_unary_expression(UnaryOp op, const ExprPtr& expr)
 {
     expr->evaluate(*this);
@@ -142,7 +144,7 @@ void ASTEvaluator::visit_fun_call(const ExprPtr& fun, const ExprList& args)
 {
     fun->evaluate(*this);
     auto call = pop();
-    if (call.is_callable()) {
+    if (call.is<CallablePtr>()) {
 	auto callable = call.as_callable();
 
 	if (args.size() != callable->arity() && callable->arity() != VAR_ARGS) {

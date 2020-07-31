@@ -138,6 +138,10 @@ namespace Calculator
 				case 'U':
 					TODO();
 					break;
+                default:
+				    s += c;
+				    c = selector;
+				    break;
 				}
 			}
 			s += c;
@@ -214,6 +218,7 @@ namespace Calculator
 			m_done_lexing = true;
 			return make_token(TokenType::Eof);
 		}
+
         auto token_line = m_current_line;
 		auto token_column = m_current_column;
 		switch (ch) // NOLINT(hicpp-multiway-paths-covered)

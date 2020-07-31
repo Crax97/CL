@@ -87,7 +87,7 @@ public:
     uint8_t arity() override { return m_arg_names.size(); }
     std::string string_repr() const noexcept override
     {
-	DebugPrinterEvaluator eval;
+	StringVisitor eval;
 	std::string name_string = "";
 	for (const auto& name : m_arg_names) {
 	    name_string += name + ", ";

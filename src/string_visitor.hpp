@@ -6,9 +6,10 @@
 #include "stack_based_evaluator.hpp"
 
 namespace Calculator {
-class DebugPrinterEvaluator : public StackMachine<std::string>, public Evaluator {
+class StringVisitor : public StackMachine<std::string>, public Evaluator {
 private:
     uint8_t m_scope { 0 };
+    [[nodiscard]]
     std::string get_tabs() const noexcept;
 
 public:

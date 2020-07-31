@@ -9,15 +9,9 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
-
-namespace std {
-template <>
-struct hash<Calculator::RuntimeValue> {
-    const size_t operator()(const Calculator::RuntimeValue& m);
-};
-};
 
 namespace Calculator {
 
@@ -34,16 +28,19 @@ public:
 
 class Callable {
 public:
-    virtual std::optional<RuntimeValue> call(const Args& args = Args()) = 0;
+    virtual std::optional<RuntimeValue> call(const Args& args) = 0;
+    std::optional<RuntimeValue> call();
     virtual uint8_t arity() = 0;
+    [[nodiscard]]
     virtual std::string to_string() const noexcept
     {
-	std::stringstream sstream;
-	sstream << "Function @0x" << std::hex;
-	uint64_t addr = reinterpret_cast<uint64_t>(this);
-	sstream << addr;
-	return sstream.str();
+	std::stringstream stream;
+	stream << "Function @0x" << std::hex;
+	auto addr = reinterpret_cast<uint64_t>(this);
+	stream << addr;
+	return stream.str();
     }
+    [[nodiscard]]
     virtual std::string string_repr() const noexcept { return to_string(); }
 };
 
@@ -51,20 +48,20 @@ using RawValue = std::variant<std::monostate, bool, Number, String, IndexablePtr
 class RuntimeValue {
 private:
     RawValue m_value;
-    bool m_constant { false };
 
 public:
+    [[nodiscard]]
     Number as_number() const;
+    [[nodiscard]]
     CallablePtr as_callable() const;
+    [[nodiscard]]
     bool is_truthy() const noexcept;
-    bool is_null() const noexcept;
-    bool is_number() const noexcept;
-    bool is_string() const noexcept { return std::holds_alternative<String>(m_value); }
-    bool is_callable() const noexcept;
-    template <class T>
-    bool is() const noexcept { return std::holds_alternative<T>(m_value); }
 
     template <class T>
+    [[nodiscard]]
+    bool is() const noexcept { return std::holds_alternative<T>(m_value); }
+    template <class T>
+    [[nodiscard]]
     T as() const
     {
 	if (is<T>()) {
@@ -73,8 +70,6 @@ public:
 	throw RuntimeException(to_string() + " is not " + typeid(T).name());
     }
 
-    template <class T>
-    static RuntimeValuePtr make(T arg) { return std::make_shared<RuntimeValue>(arg); }
     void negate();
     RuntimeValue operator+(const RuntimeValue& other);
     RuntimeValue operator-(const RuntimeValue& other);
@@ -90,15 +85,17 @@ public:
     bool operator<=(const RuntimeValue& other) const;
     bool operator>=(const RuntimeValue& other) const;
 
-    void set_property(const RuntimeValue& name, RuntimeValue val)
+    void set_property(const RuntimeValue& name, RuntimeValue val) const
     {
 	if (is<IndexablePtr>()) {
 	    auto ind = as<IndexablePtr>();
-	    ind->set(name, val);
+	    ind->set(name, std::move(val));
 	} else
 	    throw RuntimeException(to_string() + " is not indexable!");
     }
-    RuntimeValue& get_property(const RuntimeValue& name)
+
+    [[nodiscard]]
+    RuntimeValue& get_property(const RuntimeValue& name) const
     {
 	if (is<IndexablePtr>()) {
 	    auto ind = as<IndexablePtr>();
@@ -107,24 +104,31 @@ public:
 	    throw RuntimeException(to_string() + " is not indexable!");
     }
 
-    void set_named(const std::string& name, RuntimeValue v)
+    void set_named(const std::string& name, RuntimeValue v) const
     {
-	set_property(RuntimeValue(name), v);
+	set_property(RuntimeValue(name), std::move(v));
     }
-    RuntimeValue get_named(const std::string& name)
+
+    [[nodiscard]]
+    RuntimeValue get_named(const std::string& name) const
     {
 	return get_property(RuntimeValue(name));
     }
 
+    [[nodiscard]]
     const RawValue& raw_value() const noexcept;
 
+    [[nodiscard]]
     std::string to_string() const noexcept;
+    [[nodiscard]]
     std::string string_representation() const noexcept;
 
     explicit RuntimeValue(bool b) noexcept
 	: m_value(b)
     {
     }
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "google-explicit-constructor"
     RuntimeValue(Number n) noexcept
 	: m_value(n)
     {
@@ -145,6 +149,8 @@ public:
 	: m_value(std::monostate())
     {
     }
+
+#pragma clang diagnostic pop
 };
 
 using Dict = std::unordered_map<RawValue, RuntimeValue>;
@@ -152,13 +158,13 @@ using Lis = std::vector<RuntimeValue>;
 class List : public Indexable {
 private:
     Lis m_list;
-    Dict m_funs;
+    Dict m_functions;
 
 public:
     List();
     void set(const RuntimeValue& s, RuntimeValue v) override
     {
-	size_t n = static_cast<size_t>(s.as<Number>());
+	auto n = static_cast<size_t>(s.as<Number>());
 	if (n < m_list.size()) {
 	    m_list[n] = v;
 	} else {
@@ -174,19 +180,19 @@ public:
     RuntimeValue& get(const RuntimeValue& s) override
     {
 	if (!s.is<Number>()) {
-	    if (m_funs.find(s.raw_value()) == m_funs.end()) {
+	    if (m_functions.find(s.raw_value()) == m_functions.end()) {
 		throw RuntimeException(s.to_string() + " is not bound. ");
 	    }
-	    return m_funs.at(s.raw_value());
+	    return m_functions.at(s.raw_value());
 	}
-	size_t n = static_cast<size_t>(s.as<Number>());
+	auto n = static_cast<size_t>(s.as<Number>());
 	if (n < m_list.size()) {
 	    return m_list[n];
 	} else {
 	    throw RuntimeException("Tried indexing outside this list's range");
 	}
     }
-    virtual std::string to_string() override
+    std::string to_string() override
     {
 	std::stringstream stream;
 	stream << "[";
@@ -196,7 +202,7 @@ public:
 	stream << "]";
 	return stream.str();
     }
-    virtual std::string string_repr() override
+    std::string string_repr() override
     {
 	return "list " + to_string();
     }
@@ -219,8 +225,8 @@ public:
 	}
 	throw RuntimeException(s.to_string() + " not bound in dictionary\n");
     }
-    virtual std::string to_string() override;
-    virtual std::string string_repr() override;
+    std::string to_string() override;
+    std::string string_repr() override;
 };
 
 class Module : public Indexable {
@@ -229,15 +235,14 @@ private:
     RuntimeEnvPtr m_env;
 
 public:
-    Module(RuntimeEnvPtr env)
-	: m_env(env)
+    explicit Module(RuntimeEnvPtr env)
+	: m_env(std::move(env))
     {
     }
 
-    const RuntimeEnvPtr get_env() const noexcept { return m_env; }
     RuntimeValue& get(const RuntimeValue& what) override;
     void set(const RuntimeValue&, RuntimeValue) override { throw RuntimeException("Modules aren't externally modifiable."); }
-    virtual std::string to_string() override;
-    virtual std::string string_repr() override;
+    std::string to_string() override;
+    std::string string_repr() override;
 };
 } // namespace CL
