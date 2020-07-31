@@ -1,3 +1,5 @@
 build
 .clangd
+.idea
+cmake-build-debug
 !build/compile_commands.json
