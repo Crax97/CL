@@ -3,9 +3,9 @@
 #include "exceptions.hpp"
 #include "nodes.hpp"
 #include "tokens.hpp"
-#include "value.hpp"
 #include <memory>
 #include <sstream>
+#include <utility>
 
 namespace Calculator {
 
@@ -14,46 +14,34 @@ BinaryOp token_type_to_binary_opcode(TokenType type)
     switch (type) {
     case TokenType::Plus:
 	return BinaryOp::Addition;
-	break;
     case TokenType::Minus:
 	return BinaryOp::Subtraction;
-	break;
     case TokenType::Star:
 	return BinaryOp::Multiplication;
-	break;
     case TokenType::Slash:
 	return BinaryOp::Division;
-	break;
     case TokenType::Percent:
 	return BinaryOp::Modulo;
-	break;
     case TokenType::Equals:
 	return BinaryOp::Equals;
     case TokenType::Not_Equals:
 	return BinaryOp::Not_Equals;
-	break;
     case TokenType::Less:
 	return BinaryOp::Less;
-	break;
     case TokenType::Less_Or_Equals:
 	return BinaryOp::Less_Equals;
-	break;
     case TokenType::Greater:
 	return BinaryOp::Greater;
-	break;
     case TokenType::Greater_Or_Equals:
 	return BinaryOp::Greater_Equals;
-	break;
     case TokenType::And:
 	return BinaryOp::And;
     case TokenType::Or:
 	return BinaryOp::Or;
-	break;
     default:
 	NOT_REACHED();
     }
     NOT_REACHED();
-    return BinaryOp::Addition;
 }
 
 UnaryOp token_type_to_unary_opcode(TokenType type)
@@ -77,14 +65,14 @@ private:
 
 public:
     ParsingException(Token error_token, std::string_view error_message)
-	: m_error_token(error_token)
+	: m_error_token(std::move(std::move(error_token)))
 	, CLException(std::string(error_message))
     {
     }
 };
 
 Parser::Parser(Lexer lexer)
-    : m_lexer(lexer)
+    : m_lexer(std::move(lexer))
     , m_current_token(0)
 {
 }
@@ -438,8 +426,8 @@ ExprPtr Parser::assign()
 	consume(TokenType::Assign);
 	if (prev.get_type() == TokenType::Identifier) {
 	    auto name = prev.get<std::string>();
-	    auto expr = expression();
-	    return std::make_unique<AssignExpression>(name, std::move(expr));
+	    auto left_expr = expression();
+	    return std::make_unique<AssignExpression>(name, std::move(left_expr));
 	} else if (prev.get_type() == TokenType::Right_Brace) {
 	    throw_exception("Invalid assign target!", prev);
 	}
@@ -494,7 +482,7 @@ ExprPtr Parser::dict_expression()
 	auto l = expression();
 	consume(TokenType::Double_Dots);
 	auto r = expression();
-	expressions.push_back(std::pair<ExprPtr, ExprPtr>(l, r));
+	expressions.emplace_back(l, r);
     }
 
     consume(TokenType::Right_Curly_Brace);

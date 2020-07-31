@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace Calculator {
 class CLException : public std::runtime_error {
@@ -9,30 +10,25 @@ protected:
     std::string m_message;
 
 public:
-    CLException(std::string message)
+    explicit CLException(std::string message)
 	: std::runtime_error("")
-	, m_message(message)
+	, m_message(std::move(message))
     {
     }
 
+    [[nodiscard]]
     std::string_view get_message() const noexcept { return m_message; }
 
+    [[nodiscard]]
     const char* what() const noexcept override { return m_message.c_str(); }
 };
 
 class RuntimeException : public CLException {
 public:
-    RuntimeException(std::string message)
-	: CLException(message)
+    explicit RuntimeException(std::string message)
+	: CLException(std::move(message))
     {
     }
 };
 
-class CompilerException : public CLException {
-public:
-    CompilerException(std::string message)
-	: CLException(message)
-    {
-    }
-};
 } // namespace CL

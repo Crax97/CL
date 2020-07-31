@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <string>
+#include <utility>
 
 template <typename... Ts>
 struct make_overload : Ts... {
@@ -122,7 +123,7 @@ std::string token_type_to_string(TokenType type) noexcept
 Token::Token(TokenType type, CarriedValue value, uint16_t column, uint16_t line,
     std::string_view source_line) noexcept
     : m_type(type)
-    , m_value(value)
+    , m_value(std::move(std::move(value)))
     , m_line(line)
     , m_column(column)
     , m_source_line(source_line)
@@ -131,7 +132,7 @@ Token::Token(TokenType type, CarriedValue value, uint16_t column, uint16_t line,
 
 Token::Token(Number number, uint16_t column, uint16_t line,
     std::string_view source_line) noexcept
-    : Token(TokenType::Number, number, line, column, source_line)
+    : Token(TokenType::Number, number, column, line, source_line)
 {
 }
 
@@ -162,7 +163,7 @@ std::string Token::to_string() const noexcept
 	visit_variant(
 	    m_value.value(),
 	    [&str](Number i) { str.append(std::to_string(i)); },
-	    [&str](std::string id) { str.append(id); });
+	    [&str](const std::string& id) { str.append(id); });
     }
     return str;
 }

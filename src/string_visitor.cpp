@@ -121,10 +121,10 @@ void StringVisitor::visit_continue_expression()
 void StringVisitor::visit_if_expression(const ExprPtr& cond, const ExprPtr& expr, const ExprPtr& else_branch)
 {
 
-    expr->evaluate(*this);
     cond->evaluate(*this);
+    expr->evaluate(*this);
 
-    std::string result = pop() + " if " + pop();
+    std::string result = "if " + pop() + " " + pop();
     if (else_branch) {
 	else_branch->evaluate(*this);
 	auto else_str = pop();

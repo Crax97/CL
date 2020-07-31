@@ -85,10 +85,10 @@ private:
     Token next();
     Token& peek();
     Token previous();
-    void throw_exception(const std::string& why, const Token& cause);
+    static void throw_exception(const std::string& why, const Token& cause);
 
 public:
-    Parser(Lexer lexer);
+    explicit Parser(Lexer lexer);
 
     ExprList parse_all();
 };

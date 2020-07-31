@@ -5,6 +5,8 @@
 
 #include <memory>
 #include <string>
+#include <utility>
+#include <utility>
 #include <variant>
 #include <vector>
 namespace Calculator {
@@ -44,7 +46,7 @@ private:
     Number m_val;
 
 public:
-    NumberExpression(Number val) noexcept
+    explicit NumberExpression(Number val) noexcept
 	: m_val(val)
     {
     }
@@ -56,8 +58,8 @@ private:
     String m_str;
 
 public:
-    StringExpression(String s) noexcept
-	: m_str(s)
+    explicit StringExpression(String s) noexcept
+	: m_str(std::move(s))
     {
     }
     void evaluate(Evaluator& evaluator) const override
@@ -71,8 +73,8 @@ private:
     std::vector<std::pair<ExprPtr, ExprPtr>> m_exprs;
 
 public:
-    DictExpression(std::vector<std::pair<ExprPtr, ExprPtr>> exprs)
-	: m_exprs(exprs)
+    explicit DictExpression(std::vector<std::pair<ExprPtr, ExprPtr>> exprs)
+	: m_exprs(std::move(std::move(exprs)))
     {
     }
     void evaluate(Evaluator& evaluator) const override
@@ -85,8 +87,8 @@ private:
     ExprList m_exprs;
 
 public:
-    ListExpression(ExprList exprs)
-	: m_exprs(exprs)
+    explicit ListExpression(ExprList exprs)
+	: m_exprs(std::move(std::move(exprs)))
     {
     }
     void evaluate(Evaluator& evaluator) const override
@@ -101,7 +103,7 @@ private:
     ExprPtr m_right;
 
 public:
-    AndExpression(ExprPtr left, ExprPtr right) noexcept
+    explicit AndExpression(ExprPtr left, ExprPtr right) noexcept
 	: m_left(std::move(left))
 	, m_right(std::move(right))
     {
@@ -115,7 +117,7 @@ private:
     ExprPtr m_right;
 
 public:
-    OrExpression(ExprPtr left, ExprPtr right) noexcept
+    explicit OrExpression(ExprPtr left, ExprPtr right) noexcept
 	: m_left(std::move(left))
 	, m_right(std::move(right))
     {
@@ -129,7 +131,7 @@ class BinaryExpression : public Expression {
     BinaryOp m_op;
 
 public:
-    BinaryExpression(ExprPtr left, BinaryOp op, ExprPtr right) noexcept
+    explicit BinaryExpression(ExprPtr left, BinaryOp op, ExprPtr right) noexcept
 	: m_left(std::move(left))
 	, m_op(op)
 	, m_right(std::move(right))
@@ -143,7 +145,7 @@ class UnaryExpression : public Expression {
     UnaryOp m_op;
 
 public:
-    UnaryExpression(ExprPtr expr, UnaryOp op) noexcept
+    explicit UnaryExpression(ExprPtr expr, UnaryOp op) noexcept
 	: m_expr(std::move(expr))
 	, m_op(op)
     {
@@ -159,8 +161,8 @@ private:
     std::string m_name;
 
 public:
-    VarExpression(std::string name) noexcept
-	: m_name(name)
+    explicit VarExpression(std::string name) noexcept
+	: m_name(std::move(name))
     {
     }
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_var_expression(m_name); }
@@ -172,8 +174,8 @@ private:
     ExprPtr m_val;
 
 public:
-    AssignExpression(std::string name, ExprPtr val) noexcept
-	: m_name(name)
+    explicit AssignExpression(std::string name, ExprPtr val) noexcept
+	: m_name(std::move(name))
 	, m_val(std::move(val))
     {
     }
@@ -187,7 +189,7 @@ private:
     ExprPtr m_else;
 
 public:
-    IfExpression(ExprPtr cond, ExprPtr body, ExprPtr else_branch)
+    explicit IfExpression(ExprPtr cond, ExprPtr body, ExprPtr else_branch)
 	: m_cond(std::move(cond))
 	, m_body(std::move(body))
 	, m_else(std::move(else_branch))
@@ -203,9 +205,9 @@ private:
     ExprPtr m_body;
 
 public:
-    WhileExpression(ExprPtr cond, ExprPtr body)
-	: m_cond(cond)
-	, m_body(body)
+    explicit WhileExpression(ExprPtr cond, ExprPtr body)
+	: m_cond(std::move(cond))
+	, m_body(std::move(body))
     {
     }
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_while_expression(m_cond, m_body); }
@@ -218,10 +220,10 @@ private:
     ExprPtr m_body;
 
 public:
-    ForExpression(std::string name, ExprPtr iterable, ExprPtr body)
-	: m_name(name)
-	, m_iterable(iterable)
-	, m_body(body)
+    explicit ForExpression(std::string name, ExprPtr iterable, ExprPtr body)
+	: m_name(std::move(name))
+	, m_iterable(std::move(iterable))
+	, m_body(std::move(body))
     {
     }
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_for_expression(m_name, m_iterable, m_body); }
@@ -233,7 +235,7 @@ private:
     const ExprList m_args;
 
 public:
-    FunCallExpression(ExprPtr expr, ExprList args) noexcept
+    explicit FunCallExpression(ExprPtr expr, ExprList args) noexcept
 	: m_expr(std::move(expr))
 	, m_args(std::move(args))
     {
@@ -247,8 +249,8 @@ private:
     Names m_args;
 
 public:
-    FunDef(Names arg_names, ExprPtr body)
-	: m_args(arg_names)
+    explicit FunDef(Names arg_names, ExprPtr body)
+	: m_args(std::move(arg_names))
 	, m_body(std::move(body))
     {
     }
@@ -260,7 +262,7 @@ private:
     ExprList m_body;
 
 public:
-    BlockExpression(ExprList body)
+    explicit BlockExpression(ExprList body)
 	: m_body(std::move(body))
     {
     }
@@ -272,7 +274,7 @@ private:
     ExprPtr m_expr;
 
 public:
-    ReturnExpression(ExprPtr expr)
+    explicit ReturnExpression(ExprPtr expr)
 	: m_expr(std::move(expr))
     {
     }
@@ -297,9 +299,9 @@ private:
 
 public:
     SetExpression(ExprPtr obj, ExprPtr name, ExprPtr val)
-	: m_obj(obj)
-	, m_name(name)
-	, m_val(val)
+	: m_obj(std::move(obj))
+	, m_name(std::move(name))
+	, m_val(std::move(val))
     {
     }
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_set_expression(m_obj, m_name, m_val); }
@@ -311,8 +313,8 @@ private:
 
 public:
     GetExpression(ExprPtr obj, ExprPtr name)
-	: m_obj(obj)
-	, m_name(name)
+	: m_obj(std::move(obj))
+	, m_name(std::move(name))
     {
     }
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_get_expression(m_obj, m_name); }
@@ -323,8 +325,8 @@ private:
     ExprList m_expressions;
 
 public:
-    ModuleExpression(ExprList exprs)
-	: m_expressions(exprs)
+    explicit ModuleExpression(ExprList exprs)
+	: m_expressions(std::move(exprs))
     {
     }
 

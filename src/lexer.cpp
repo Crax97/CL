@@ -17,7 +17,8 @@ namespace Calculator
 		static std::string generate_nice_error(std::string_view error_message, std::string_view source_line, uint16_t line, uint16_t column)
 		{
 			std::stringstream stream;
-			stream << "Lexing error " << error_message;
+			stream << "Lexing error " << error_message << " at " << std::to_string(line) << ":" << std::to_string(column);
+			stream << "\n" << source_line << "\n";
 			return stream.str();
 		}
 
@@ -29,7 +30,7 @@ namespace Calculator
 	};
 
 	static std::map<std::string, TokenType>
-		token_map = {
+		token_map = { // NOLINT(cert-err58-cpp)
 			{"if", TokenType::If},
 			{"else", TokenType::Else},
 			{"while", TokenType::While},
@@ -137,7 +138,6 @@ namespace Calculator
 				case 'u':
 				case 'U':
 					TODO();
-					break;
                 default:
 				    s += c;
 				    c = selector;
@@ -302,7 +302,7 @@ namespace Calculator
 		return m_parsed_tokens.back();
 	}
 
-	void Lexer::lex_all()
+    [[maybe_unused]] void Lexer::lex_all()
 	{
 		while (!is_at_end())
 		{
@@ -310,7 +310,7 @@ namespace Calculator
 		}
 	}
 
-	bool Lexer::has_tokens() const noexcept
+    [[maybe_unused]] bool Lexer::has_tokens() const noexcept
 	{
 		return !m_parsed_tokens.empty() || !m_done_lexing;
 	}

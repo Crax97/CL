@@ -26,8 +26,6 @@ class Expression;
 class Indexable;
 class StackedEnvironment;
 
-using RuntimeValuePtr
-    = std::shared_ptr<RuntimeValue>;
 using RuntimeEnvPtr = std::shared_ptr<StackedEnvironment>;
 using IndexablePtr = std::shared_ptr<Indexable>;
 
@@ -103,7 +101,6 @@ enum class TokenType {
     Let,
     Fun,
     Global,
-    Static,
     Self,
     Identifier,
     If,
@@ -114,7 +111,6 @@ enum class TokenType {
     Return,
     Continue,
     Break,
-    Class,
     Dict,
     List,
 

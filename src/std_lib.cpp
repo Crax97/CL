@@ -28,10 +28,13 @@ public:
     {
     }
 
-    bool has_next()
+    [[nodiscard]]
+    bool has_next() const
     {
 	return m_current < m_end;
     }
+
+    [[nodiscard]]
     RuntimeValue next()
     {
 	auto v = m_current;
@@ -40,11 +43,11 @@ public:
     }
 };
 
-void inject_import_function(RuntimeEnvPtr parent_env)
+void inject_import_function(const RuntimeEnvPtr& parent_env)
 {
     static auto import_impl = std::make_shared<Function>(
 	[parent_env](const Args& args) {
-	    String path = args[0].as<String>();
+	    auto path = args[0].as<String>();
 	    auto file = std::fstream(path);
 	    if (!file.is_open()) {
 		throw RuntimeException("Cannot read file " + path);
@@ -69,10 +72,10 @@ void inject_import_function(RuntimeEnvPtr parent_env)
 	1);
     parent_env->assign("import", RuntimeValue(import_impl));
 }
-void inject_stdlib_functions(RuntimeEnvPtr env)
+void inject_stdlib_functions(const RuntimeEnvPtr& env)
 {
     static auto exit_impl = std::make_shared<VoidFunction>([](const Calculator::Args& args) {
-	auto code = args[0].as_number();
+	auto code = args[0].as<Number>();;
 	exit(static_cast<int>(code));
     },
 	1);
@@ -121,32 +124,32 @@ void inject_stdlib_functions(RuntimeEnvPtr env)
     env->assign("repr", RuntimeValue(repr_impl));
     env->assign("range", RuntimeValue(range_impl));
 }
-void inject_math_functions(RuntimeEnvPtr env)
+void inject_math_functions(const RuntimeEnvPtr& env)
 {
     auto dict_object = RuntimeValue(std::make_shared<Dictionary>());
     static auto abs_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
-	auto num = args[0].as_number();
+	auto num = args[0].as<Number>();
 	return num < 0 ? -num : num;
     },
 	1);
     static auto sin_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
-	auto num = args[0].as_number();
+	auto num = args[0].as<Number>();
 	return sin(num);
     },
 	1);
 
     static auto cos_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
-	auto num = args[0].as_number();
+	auto num = args[0].as<Number>();
 	return cos(num);
     },
 	1);
     static auto deg2rad_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
-	auto deg = args[0].as_number();
+	auto deg = args[0].as<Number>();
 	return deg * PI / 180.0;
     },
 	1);
     static auto rad2deg_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
-	auto rad = args[0].as_number();
+	auto rad = args[0].as<Number>();
 	return rad * 180.0 / PI;
     },
 	1);

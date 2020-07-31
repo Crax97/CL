@@ -51,10 +51,6 @@ private:
 
 public:
     [[nodiscard]]
-    Number as_number() const;
-    [[nodiscard]]
-    CallablePtr as_callable() const;
-    [[nodiscard]]
     bool is_truthy() const noexcept;
 
     template <class T>
@@ -72,11 +68,11 @@ public:
 
     void negate();
     RuntimeValue operator+(const RuntimeValue& other);
-    RuntimeValue operator-(const RuntimeValue& other);
-    RuntimeValue operator*(const RuntimeValue& other);
-    RuntimeValue operator/(const RuntimeValue& other);
-    RuntimeValue modulo(const RuntimeValue& other);
-    RuntimeValue to_power_of(const RuntimeValue& other);
+    RuntimeValue operator-(const RuntimeValue& other) const;
+    RuntimeValue operator*(const RuntimeValue& other) const;
+    RuntimeValue operator/(const RuntimeValue& other) const;
+    RuntimeValue modulo(const RuntimeValue& other) const;
+    RuntimeValue to_power_of(const RuntimeValue& other) const;
 
     bool operator!=(const RuntimeValue& other) const;
     bool operator==(const RuntimeValue& other) const;

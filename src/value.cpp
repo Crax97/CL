@@ -42,7 +42,7 @@ struct NegateVisitor {
 };
 
 struct StringVisitor {
-    std::string operator()(const std::monostate v) { return "nool"; }
+    std::string operator()(const std::monostate) { return "nool"; }
     std::string operator()(bool b) { return std::to_string(b); }
     std::string operator()(const Number v) { return num_to_str_pretty_formatted(v); }
     std::string operator()(const Module& mod) { return "Module " + addr_to_hex_str(mod); }
@@ -58,7 +58,7 @@ struct StringVisitor {
 };
 
 struct StringRepresentationVisitor {
-    std::string operator()(const std::monostate v) { return "nool"; }
+    std::string operator()(const std::monostate) { return "nool"; }
     std::string operator()(bool b) { return std::to_string(b); }
     std::string operator()(const Number v)
     {
@@ -79,7 +79,7 @@ struct TruthinessVisitor {
 struct EqualityOperator {
     bool operator()(bool b, bool l) { return b == l; }
     bool operator()(const Number v, const Number o) { return v == o; }
-    bool operator()(const std::monostate v, const std::monostate o) { return true; }
+    bool operator()(const std::monostate, const std::monostate) { return true; }
     bool operator()(const CallablePtr& l, const CallablePtr& r) { return l == r; }
     bool operator()(const IndexablePtr& l, const IndexablePtr& r) { return l == r; }
     bool operator()(const String& l, const String& r) { return l == r; }
@@ -89,7 +89,7 @@ struct EqualityOperator {
 struct NegatedEqualityOperator {
     bool operator()(bool b, bool l) { return b != l; }
     bool operator()(const Number v, const Number o) { return v != o; }
-    bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const std::monostate, const std::monostate) { return false; }
     bool operator()(const CallablePtr& l, const CallablePtr& r) { return l != r; }
     bool operator()(const IndexablePtr& l, const IndexablePtr& r) { return l != r; }
     bool operator()(const String& l, const String& r) { return l != r; }
@@ -99,7 +99,7 @@ struct NegatedEqualityOperator {
 
 struct LessThanOperator {
     bool operator()(const Number v, const Number o) { return v < o; }
-    bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const std::monostate, const std::monostate) { return false; }
     bool operator()(const String& l, const String& r) { return l < r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v)
@@ -109,14 +109,14 @@ struct LessThanOperator {
 };
 struct GreaterThanOperator {
     bool operator()(const Number v, const Number o) { return v > o; }
-    bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const std::monostate, const std::monostate) { return false; }
     bool operator()(const String& l, const String& r) { return l > r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
 };
 struct LessEqualsOperator {
     bool operator()(const Number v, const Number o) { return v <= o; }
-    bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const std::monostate, const std::monostate) { return false; }
     bool operator()(const String& l, const String& r) { return l <= r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
@@ -124,7 +124,7 @@ struct LessEqualsOperator {
 
 struct GreaterEqualsOperator {
     bool operator()(const Number v, const Number o) { return v >= o; }
-    bool operator()(const std::monostate v, const std::monostate o) { return false; }
+    bool operator()(const std::monostate, const std::monostate) { return false; }
     bool operator()(const String& l, const String& r) { return l >= r; }
     template <class T, class V>
     bool operator()(const T& _t, const V& _v) { return false; }
@@ -137,25 +137,6 @@ struct SumOperator {
     template <class T, class U>
     RuntimeValue operator()(const T& _t, const U& _u) { throw RuntimeException("Values cannot be summed."); }
 };
-
-Number
-RuntimeValue::as_number() const
-{
-    if (std::holds_alternative<Number>(m_value)) {
-	return std::get<Number>(m_value);
-    } else {
-	throw RuntimeException("This value is not a number! " + to_string());
-    }
-}
-
-CallablePtr RuntimeValue::as_callable() const
-{
-    if (is<CallablePtr>()) {
-	return std::get<CallablePtr>(m_value);
-    } else {
-	throw RuntimeException(to_string() + " is not a Callable!");
-    }
-}
 
 bool RuntimeValue::is_truthy() const noexcept
 {
@@ -172,25 +153,25 @@ RuntimeValue RuntimeValue::operator+(const RuntimeValue& other)
 {
     return std::visit(SumOperator {}, this->m_value, other.m_value);
 }
-RuntimeValue RuntimeValue::operator-(const RuntimeValue& other)
+RuntimeValue RuntimeValue::operator-(const RuntimeValue& other) const
 {
-    return this->as_number() - other.as_number();
+    return this->as<Number>() - other.as<Number>();
 }
-RuntimeValue RuntimeValue::operator*(const RuntimeValue& other)
+RuntimeValue RuntimeValue::operator*(const RuntimeValue& other) const
 {
-    return this->as_number() * other.as_number();
+    return this->as<Number>() * other.as<Number>();
 }
-RuntimeValue RuntimeValue::operator/(const RuntimeValue& other)
+RuntimeValue RuntimeValue::operator/(const RuntimeValue& other) const
 {
-    return this->as_number() / other.as_number();
+    return this->as<Number>() / other.as<Number>();
 }
-RuntimeValue RuntimeValue::to_power_of(const RuntimeValue& other)
+RuntimeValue RuntimeValue::to_power_of(const RuntimeValue& other) const
 {
-    return pow(this->as_number(), other.as_number());
+    return pow(this->as<Number>(), other.as<Number>());
 }
-RuntimeValue RuntimeValue::modulo(const RuntimeValue& other)
+RuntimeValue RuntimeValue::modulo(const RuntimeValue& other) const
 {
-    return fmod(this->as_number(), other.as_number());
+    return fmod(this->as<Number>(), other.as<Number>());
 }
 bool RuntimeValue::operator!=(const RuntimeValue& other) const
 {
@@ -214,8 +195,7 @@ bool RuntimeValue::operator<=(const RuntimeValue& other) const
 }
 bool RuntimeValue::operator>=(const RuntimeValue& other) const
 {
-    auto truth_diocane = std::visit(GreaterEqualsOperator {}, m_value, other.m_value);
-    return truth_diocane;
+    return std::visit(GreaterEqualsOperator {}, m_value, other.m_value);
 }
 
 std::string RuntimeValue::to_string() const noexcept

@@ -21,7 +21,6 @@ private:
     uint64_t m_current_line { 1 };
     bool m_done_lexing = false;
 
-    bool match(char next);
 
     Token parse_number();
     Token parse_string(char delimiter);
@@ -39,7 +38,7 @@ private:
     void ignore_comment();
 
 public:
-    Lexer(std::istream& stream)
+    explicit Lexer(std::istream& stream)
 	: m_source(stream)
     {
 	update_line_view();
@@ -47,8 +46,14 @@ public:
 
     Token next();
     Token& peek();
+
+    [[maybe_unused]] [[maybe_unused]]
     void lex_all();
+    [[nodiscard]]
     bool is_at_end() const noexcept;
+
+    [[maybe_unused]] [[nodiscard]]
+    [[maybe_unused]]
     bool has_tokens() const noexcept;
 };
 } // namespace CL

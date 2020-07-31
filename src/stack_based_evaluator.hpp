@@ -19,9 +19,5 @@ protected:
 	m_stack.pop();
 	return t;
     }
-
-public:
-    [[nodiscard]]
-    bool has_result() const noexcept { return m_stack.size() > 0; }
 };
 }

@@ -14,12 +14,13 @@ private:
 
 public:
     VoidFunction(VoidFunctionCallback function, uint8_t arity)
-	: m_function(function)
+	: m_function(std::move(function))
 	, m_arity(arity)
     {
     }
     uint8_t arity() override { return m_arity; }
-    std::optional<RuntimeValue> call(const Args& args = Args()) override
+    [[nodiscard]]
+    std::optional<RuntimeValue> call(const Args& args) override
     {
 	m_function(args);
 	return std::nullopt;
@@ -32,12 +33,12 @@ private:
 
 public:
     Function(FunctionCallback function, uint8_t arity)
-	: m_function(function)
+	: m_function(std::move(function))
 	, m_arity(arity)
     {
     }
     uint8_t arity() override { return m_arity; }
-    std::optional<RuntimeValue> call(const Args& args = Args()) override
+    std::optional<RuntimeValue> call(const Args& args) override
     {
 	return m_function(args);
     }

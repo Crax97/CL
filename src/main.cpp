@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <istream>
@@ -10,14 +9,9 @@
 #include "commons.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
-#include "function_callable.hpp"
 #include "lexer.hpp"
-#include "nodes.hpp"
 #include "parser.hpp"
 #include "std_lib.hpp"
-#include "string_visitor.hpp"
-#include "tokens.hpp"
-#include "value.hpp"
 
 void run_script(const std::string& script_path, std::shared_ptr<Calculator::StackedEnvironment> env)
 {
@@ -30,7 +24,7 @@ void run_script(const std::string& script_path, std::shared_ptr<Calculator::Stac
     auto stream = std::stringstream(content);
     auto parser = Calculator::Parser(Calculator::Lexer(stream));
     auto tree = parser.parse_all();
-    auto evaluator = Calculator::ASTEvaluator(env);
+    auto evaluator = Calculator::ASTEvaluator(std::move(env));
     std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
 	ptr->evaluate(evaluator);
     });
@@ -57,7 +51,7 @@ std::string read_from_console()
     return content;
 }
 
-void run_from_cli(std::shared_ptr<Calculator::StackedEnvironment> env)
+void run_from_cli(const Calculator::RuntimeEnvPtr& env)
 {
     while (true) {
 	try {
@@ -66,7 +60,7 @@ void run_from_cli(std::shared_ptr<Calculator::StackedEnvironment> env)
 	    auto parser = Calculator::Parser(Calculator::Lexer(stream));
 	    auto tree = parser.parse_all();
 	    auto evaluator = Calculator::ASTEvaluator(env);
-	    if (tree.size() > 0) {
+	    if (!tree.empty() > 0) {
 		std::for_each(tree.begin(), tree.end(), [&evaluator](const Calculator::ExprPtr& ptr) {
 		    ptr->evaluate(evaluator);
 		});

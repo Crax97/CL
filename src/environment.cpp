@@ -7,7 +7,7 @@ namespace Calculator {
 
 class NotBoundException : public CLException {
 public:
-    NotBoundException(const std::string& unbound_name)
+    explicit NotBoundException(const std::string& unbound_name)
 	: CLException(unbound_name + " is not bound")
     {
     }

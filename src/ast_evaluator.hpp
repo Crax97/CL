@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "commons.hpp"
 #include "environment.hpp"
 #include "nodes.hpp"
@@ -63,8 +65,8 @@ private:
     void visit_module_definition(const ExprList& list) override;
 
 public:
-    ASTEvaluator(std::shared_ptr<StackedEnvironment> env)
-	: m_env(env)
+    explicit ASTEvaluator(std::shared_ptr<StackedEnvironment> env)
+	: m_env(std::move(env))
     {
     }
 
@@ -82,17 +84,18 @@ private:
 
 public:
     ASTFunction(ExprPtr body, Names names, std::shared_ptr<StackedEnvironment> definition_env)
-	: m_body(body)
-	, m_arg_names(names)
-	, m_definition_env(definition_env)
+	: m_body(std::move(body))
+	, m_arg_names(std::move(names))
+	, m_definition_env(std::move(definition_env))
     {
     }
-    std::optional<RuntimeValue> call(const Args& args = Args()) override;
+    std::optional<RuntimeValue> call(const Args& args) override;
     uint8_t arity() override { return m_arg_names.size(); }
+    [[nodiscard]]
     std::string string_repr() const noexcept override
     {
 	StringVisitor eval;
-	std::string name_string = "";
+	std::string name_string;
 	for (const auto& name : m_arg_names) {
 	    name_string += name + ", ";
 	}
