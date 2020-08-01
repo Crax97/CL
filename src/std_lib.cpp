@@ -45,24 +45,26 @@ public:
 
 class FileIterator {
 private:
-    std::vector<std::string> m_content;
-    std::vector<std::string>::iterator m_it;
+    std::ifstream m_stream;
 public:
-    explicit FileIterator(std::vector<std::string> content) :
-    m_content(std::move(content))
+    explicit FileIterator(std::ifstream&& stream) :
+    m_stream(std::move(stream))
     {
-        m_it = m_content.begin();
+        if(!m_stream.is_open())
+            throw RuntimeException("Tried opening a bad ifstream");
     }
     [[nodiscard]]
     bool has_next() const
     {
-        return m_it != m_content.end();
+        return !m_stream.eof();
     }
 
     [[nodiscard]]
     RuntimeValue next()
     {
-        return *m_it ++;
+        std::string line;
+        std::getline(m_stream, line);
+        return line;
     }
 };
 
@@ -126,8 +128,8 @@ void inject_stdlib_functions(const RuntimeEnvPtr& env)
 
     static auto open_impl = std::make_shared<Function>([](const Args& args){
             auto file_path = args[0].as<String>();
-            auto lines = Helpers::read_into_lines(file_path);
-            auto file_it = std::make_shared<FileIterator>(lines);
+            auto stream = std::ifstream(file_path);
+            auto file_it = std::make_shared<FileIterator>(std::move(stream));
 
             auto dict = RuntimeValue(std::make_shared<Dictionary>());
             auto has_next_lambda = std::make_shared<Function>([file_it](const Args& args) {
