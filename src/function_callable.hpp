@@ -6,7 +6,7 @@
 #include <optional>
 #include <sstream>
 
-namespace Calculator {
+namespace CL {
 class VoidFunction : public Callable {
 private:
     VoidFunctionCallback m_function;

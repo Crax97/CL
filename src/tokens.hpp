@@ -5,7 +5,7 @@
 #include <optional>
 #include <string_view>
 #include <variant>
-namespace Calculator {
+namespace CL {
 class Token {
 private:
     using CarriedValue = std::optional<std::variant<Number, std::string>>;
@@ -33,4 +33,4 @@ public:
 	return std::get<T>(m_value.value());
     }
 };
-} // namespace Calculator
+} // namespace CL

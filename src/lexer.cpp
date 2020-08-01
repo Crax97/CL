@@ -9,7 +9,7 @@
 #include <string>
 #include <string_view>
 
-namespace Calculator
+namespace CL
 {
 	class LexerException : public CLException
 	{
@@ -319,4 +319,4 @@ namespace Calculator
 	{
 		return m_done_lexing;
 	}
-} // namespace Calculator
+} // namespace CL

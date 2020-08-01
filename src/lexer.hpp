@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 
-namespace Calculator {
+namespace CL {
 class Token;
 class Lexer {
 

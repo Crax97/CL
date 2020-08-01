@@ -12,7 +12,7 @@
 #include <fstream>
 #include <memory>
 
-namespace Calculator {
+namespace CL {
     Script Script::from_file(const std::string &path, RuntimeEnvPtr env) {
         if (env == nullptr) env = std::make_shared<StackedEnvironment>();
         auto file_stream = std::ifstream(path);

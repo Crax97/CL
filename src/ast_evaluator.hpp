@@ -9,7 +9,7 @@
 #include "string_visitor.hpp"
 #include "value.hpp"
 
-namespace Calculator {
+namespace CL {
 class ASTEvaluator : public StackMachine<RuntimeValue>, public Evaluator {
 private:
     enum class FLAGS {

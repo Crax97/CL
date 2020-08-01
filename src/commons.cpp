@@ -1,6 +1,6 @@
 #include "commons.hpp"
 
-namespace Calculator {
+namespace CL {
 std::string binary_op_to_string(BinaryOp op) noexcept
 {
     switch (op) {

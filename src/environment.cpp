@@ -3,7 +3,7 @@
 #include "exceptions.hpp"
 #include <sstream>
 
-namespace Calculator {
+namespace CL {
 
 class NotBoundException : public CLException {
 public:

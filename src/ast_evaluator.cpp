@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace Calculator {
+namespace CL {
 void ASTEvaluator::visit_number_expression(Number n)
 {
     push(n);

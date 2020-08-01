@@ -9,7 +9,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
-namespace Calculator {
+namespace CL {
 class Evaluator {
 public:
     virtual void visit_number_expression(Number n) = 0;
@@ -333,4 +333,4 @@ public:
     void evaluate(Evaluator& evaluator) const override { evaluator.visit_module_definition(m_expressions); }
 };
 
-} // namespace Calculator
+} // namespace CL

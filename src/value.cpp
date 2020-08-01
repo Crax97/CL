@@ -30,7 +30,7 @@ std::string addr_to_hex_str(const T& el)
     return str.str();
 }
 
-namespace Calculator {
+namespace CL {
 struct NegateVisitor {
     RawValue operator()(bool b) { return !b; }
     RawValue operator()(const Number v) { return -v; }

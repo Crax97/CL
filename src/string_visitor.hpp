@@ -5,7 +5,7 @@
 #include "nodes.hpp"
 #include "stack_based_evaluator.hpp"
 
-namespace Calculator {
+namespace CL {
 class StringVisitor : public StackMachine<std::string>, public Evaluator {
 private:
     uint8_t m_scope { 0 };

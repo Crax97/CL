@@ -37,7 +37,7 @@ LITERAL := NUMBER | IDENTIFIER  | "(" EXPRESSION ")"
 CALL_ARGS := EXPRESSION | EXPRESSION "," CALL_ARGS
 */
 
-namespace Calculator {
+namespace CL {
 
 class Parser {
 private:

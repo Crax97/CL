@@ -11,7 +11,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace Calculator {
+namespace CL {
     class Helpers {
     public:
         static std::string read_file_content(const std::string& path) {

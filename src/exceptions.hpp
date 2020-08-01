@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-namespace Calculator {
+namespace CL {
 class CLException : public std::runtime_error {
 protected:
     std::string m_message;

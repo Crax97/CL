@@ -18,7 +18,7 @@
 
 #define NOT_REACHED() TODO()
 
-namespace Calculator {
+namespace CL {
 class RuntimeValue;
 
 class Callable;
@@ -119,4 +119,4 @@ enum class TokenType {
 std::string token_type_to_string(TokenType type) noexcept;
 std::string binary_op_to_string(BinaryOp op) noexcept;
 std::string unary_op_to_string(UnaryOp op) noexcept;
-} // namespace Calculator
+} // namespace CL

@@ -7,7 +7,7 @@
 #include <sstream>
 #include <utility>
 
-namespace Calculator {
+namespace CL {
 
 BinaryOp token_type_to_binary_opcode(TokenType type)
 {

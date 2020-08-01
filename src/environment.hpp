@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace Calculator {
+namespace CL {
 template <class T>
 class Env {
 public:

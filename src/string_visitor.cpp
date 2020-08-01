@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace Calculator {
+namespace CL {
 void StringVisitor::visit_number_expression(Number n)
 {
     auto str_repr_of_number = std::to_string(n);

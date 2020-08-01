@@ -13,7 +13,7 @@
 #include <variant>
 #include <vector>
 
-namespace Calculator {
+namespace CL {
 
 constexpr uint8_t VAR_ARGS = 0xFF;
 

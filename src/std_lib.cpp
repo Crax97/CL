@@ -14,7 +14,7 @@
 
 constexpr auto PI = 3.14159265359;
 
-namespace Calculator {
+namespace CL {
 
 class RangeIterator {
 private:
@@ -79,7 +79,7 @@ void inject_import_function(const RuntimeEnvPtr& parent_env)
 }
 void inject_stdlib_functions(const RuntimeEnvPtr& env)
 {
-    static auto exit_impl = std::make_shared<VoidFunction>([](const Calculator::Args& args) {
+    static auto exit_impl = std::make_shared<VoidFunction>([](const CL::Args& args) {
 	auto code = args[0].as<Number>();;
 	exit(static_cast<int>(code));
     },
@@ -152,32 +152,32 @@ void inject_stdlib_functions(const RuntimeEnvPtr& env)
 void inject_math_functions(const RuntimeEnvPtr& env)
 {
     auto dict_object = RuntimeValue(std::make_shared<Dictionary>());
-    static auto abs_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
+    static auto abs_impl = std::make_shared<CL::Function>([](const CL::Args& args) {
 	auto num = args[0].as<Number>();
 	return num < 0 ? -num : num;
     },
-	1);
-    static auto sin_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
+                                                          1);
+    static auto sin_impl = std::make_shared<CL::Function>([](const CL::Args& args) {
 	auto num = args[0].as<Number>();
 	return sin(num);
     },
-	1);
+                                                          1);
 
-    static auto cos_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
+    static auto cos_impl = std::make_shared<CL::Function>([](const CL::Args& args) {
 	auto num = args[0].as<Number>();
 	return cos(num);
     },
-	1);
-    static auto deg2rad_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
+                                                          1);
+    static auto deg2rad_impl = std::make_shared<CL::Function>([](const CL::Args& args) {
 	auto deg = args[0].as<Number>();
 	return deg * PI / 180.0;
     },
-	1);
-    static auto rad2deg_impl = std::make_shared<Calculator::Function>([](const Calculator::Args& args) {
+                                                              1);
+    static auto rad2deg_impl = std::make_shared<CL::Function>([](const CL::Args& args) {
 	auto rad = args[0].as<Number>();
 	return rad * 180.0 / PI;
     },
-	1);
+                                                              1);
     dict_object.set_named("sin", RuntimeValue(sin_impl));
     dict_object.set_named("cos", RuntimeValue(cos_impl));
     dict_object.set_named("deg2rad", RuntimeValue(deg2rad_impl));

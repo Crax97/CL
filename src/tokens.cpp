@@ -20,7 +20,7 @@ decltype(auto) visit_variant(Variant&& variant,
 	std::forward<Variant>(variant));
 }
 
-namespace Calculator {
+namespace CL {
 
 std::string token_type_to_string(TokenType type) noexcept
 {

@@ -6,7 +6,7 @@
 
 #include <sstream>
 
-namespace Calculator {
+namespace CL {
 class Script {
 private:
     RuntimeEnvPtr m_execution_env;

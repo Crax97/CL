@@ -12,9 +12,9 @@
 #include "std_lib.hpp"
 #include "script.h"
 
-void run_script(const std::string& script_path, std::shared_ptr<Calculator::StackedEnvironment> env)
+void run_script(const std::string& script_path, std::shared_ptr<CL::StackedEnvironment> env)
 {
-    auto script = Calculator::Script::from_file(script_path, env);
+    auto script = CL::Script::from_file(script_path, env);
     script.run();
 }
 
@@ -39,17 +39,17 @@ std::string read_from_console()
     return content;
 }
 
-void run_from_cli(const Calculator::RuntimeEnvPtr& env)
+void run_from_cli(const CL::RuntimeEnvPtr& env)
 {
     while (true) {
         try {
             auto source = read_from_console();
-            auto script = Calculator::Script::from_source(source, env);
+            auto script = CL::Script::from_source(source, env);
             auto result = script.run();
             if (result.has_value()) {
                 std::cout << result.value().to_string() << "\n";
             }
-        } catch (Calculator::CLException& ex) {
+        } catch (CL::CLException& ex) {
             std::cerr << "Error: " << ex.get_message() << "\n";
         }
     }
@@ -57,10 +57,10 @@ void run_from_cli(const Calculator::RuntimeEnvPtr& env)
 
 int main(int argc, char** argv)
 {
-    auto env = std::make_shared<Calculator::StackedEnvironment>();
-    Calculator::inject_import_function(env);
-    Calculator::inject_math_functions(env);
-    Calculator::inject_stdlib_functions(env);
+    auto env = std::make_shared<CL::StackedEnvironment>();
+    CL::inject_import_function(env);
+    CL::inject_math_functions(env);
+    CL::inject_stdlib_functions(env);
     if (argc == 1) {
 	run_from_cli(env);
     } else

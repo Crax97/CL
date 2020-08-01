@@ -3,7 +3,7 @@
 #include "exceptions.hpp"
 #include <stack>
 
-namespace Calculator {
+namespace CL {
 template <class T>
 class StackMachine {
 protected:
