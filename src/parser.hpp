@@ -50,8 +50,8 @@ private:
     bool match(TokenType type);
 
     template <typename T, typename... Tokens>
-    Token consume(T t, Tokens... ts);
-    Token consume(TokenType type);
+    Token consume(const std::string& error, T t, Tokens... ts);
+    Token consume(const std::string& error, TokenType type);
     ExprPtr expression();
     ExprPtr block_expression();
     ExprPtr return_expression();
@@ -65,7 +65,6 @@ private:
     ExprPtr equality_expression();
     ExprPtr comparison();
     ExprPtr shift();
-    ExprPtr modulo();
     ExprPtr sum();
     ExprPtr multiplication();
     ExprPtr unary();
@@ -91,5 +90,7 @@ public:
     explicit Parser(Lexer lexer);
 
     ExprList parse_all();
+
+    ExprPtr fun_expression();
 };
 } // namespace CL
