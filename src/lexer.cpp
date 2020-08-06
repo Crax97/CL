@@ -56,7 +56,7 @@ namespace CL
 		if (c == '\n')
 		{
 			m_current_line++;
-			m_current_column = 1;
+			m_current_column = 0;
 			update_line_view();
 		}
 		return c;
@@ -66,6 +66,9 @@ namespace CL
 	void Lexer::prev()
 	{
 		m_current_column--;
+		if(m_source.peek() == '\n') {
+		    m_current_line --;
+		}
 		m_source.unget();
 	}
 
@@ -78,9 +81,9 @@ namespace CL
 	}
 
 	template <class... T>
-	Token Lexer::make_token(T... params)
+	Token Lexer::make_token(uint64_t column, uint64_t line, const std::string& source, T... params)
 	{
-		return Token(params..., m_current_column, m_current_line, m_current_source_line);
+		return Token(params..., column, line, source);
 	}
 
 	Token Lexer::check_for_alternative(char expected, TokenType first,
@@ -88,13 +91,15 @@ namespace CL
 	{
 		if (peekc() == expected)
 		{
-			m_source.get();
-			return make_token(second);
+			get_next();
+			return make_token(m_current_column - 1, m_current_line, m_current_source_line, second);
 		}
-		return make_token(first);
+		return make_token(m_current_column, m_current_line, m_current_source_line, first);
 	}
 	Token Lexer::parse_string(char delim)
 	{
+        auto line = m_current_line;
+        auto column = m_current_column;
 		String s;
 		char c = get_next();
 		while (c != delim)
@@ -151,25 +156,37 @@ namespace CL
 				throw LexerException("Unexpected EOF while parsing string!", m_current_source_line, m_current_line, m_current_column);
 			}
 		}
-		return make_token(TokenType::String, s);
+		return make_token(column, line, m_current_source_line, TokenType::String, s);
 	}
 
 	Token Lexer::parse_number()
 	{
+        auto line = m_current_line;
+        auto column = m_current_column;
+        bool met_dot = false;
 		std::string number_string;
 		char ch = get_next();
 		while ((isdigit(ch) || ch == '.') && !is_at_end())
 		{
 			number_string += ch;
 			ch = get_next();
+			if (ch == '.') {
+			    if (!met_dot) {
+                    met_dot = true;
+                } else {
+			        throw LexerException("Invalid numeric literal!", m_current_source_line, line, column);
+			    }
+			}
 		}
 		prev();
 		Number n = std::stod(number_string);
-		return make_token(n);
+		return make_token(column, line, m_current_source_line, n);
 	}
 
 	Token Lexer::parse_keyword()
 	{
+        auto line = m_current_line;
+        auto column = m_current_column;
 		std::string token_string;
 		auto ch = get_next();
 		while ((isalpha(ch) || ch == '_' || isdigit(ch) || ch == ':') && !is_at_end())
@@ -183,11 +200,11 @@ namespace CL
 		auto it = token_map.find(token_string);
 		if (it != token_map.end())
 		{
-			return make_token(it->second);
+			return make_token(column, line, m_current_source_line, it->second);
 		}
 		else
 		{
-			return make_token(TokenType::Identifier, token_string);
+			return make_token(column, line, m_current_source_line, TokenType::Identifier, token_string);
 		}
 	}
 
@@ -216,7 +233,7 @@ namespace CL
 		if (ch == EOF)
 		{
 			m_done_lexing = true;
-			return make_token(TokenType::Eof);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Eof);
 		}
 
         auto token_line = m_current_line;
@@ -224,35 +241,35 @@ namespace CL
 		switch (ch) // NOLINT(hicpp-multiway-paths-covered)
 		{
 		case '+':
-			return make_token(TokenType::Plus);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Plus);
 		case '-':
 			return check_for_alternative('>', TokenType::Minus, TokenType::Arrow);
 		case '*':
-			return make_token(TokenType::Star);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Star);
 		case '/':
-			return make_token(TokenType::Slash);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Slash);
 		case '%':
-			return make_token(TokenType::Percent);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Percent);
 		case '.':
-			return make_token(TokenType::Dot);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Dot);
 		case ',':
-			return make_token(TokenType::Comma);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Comma);
 		case '(':
-			return make_token(TokenType::Left_Brace);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Left_Brace);
 		case ')':
-			return make_token(TokenType::Right_Brace);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Right_Brace);
 		case '{':
-			return make_token(TokenType::Left_Curly_Brace);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Left_Curly_Brace);
 		case '}':
-			return make_token(TokenType::Right_Curly_Brace);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Right_Curly_Brace);
 		case '[':
-			return make_token(TokenType::Left_Square_Brace);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Left_Square_Brace);
 		case ']':
-			return make_token(TokenType::Right_Square_Brace);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Right_Square_Brace);
 		case ':':
-			return make_token(TokenType::Double_Dots);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Double_Dots);
 		case ';':
-			return make_token(TokenType::Point_Comma);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Point_Comma);
 		case '=':
 			return check_for_alternative('=', TokenType::Assign, TokenType::Equals);
 		case '!':
@@ -262,7 +279,7 @@ namespace CL
 		case '>':
 			return check_for_alternative('=', TokenType::Greater, TokenType::Greater_Or_Equals);
 		case '^':
-			return make_token(TokenType::Xor);
+			return make_token(m_current_column, m_current_line, m_current_source_line, TokenType::Xor);
 		}
 
 		if (ch == '"' || ch == '\'')
@@ -271,12 +288,12 @@ namespace CL
 		}
 		if (isdigit(ch))
 		{
-			m_source.unget();
+            prev();
 			return parse_number();
 		}
 		if (isalpha(ch) || ch == '_')
 		{
-			m_source.unget();
+		    prev();
 			return parse_keyword();
 		}
 

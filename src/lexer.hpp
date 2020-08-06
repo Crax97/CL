@@ -17,7 +17,7 @@ private:
     std::string m_current_source_line;
 
     std::queue<Token> m_parsed_tokens;
-    uint64_t m_current_column { 1 };
+    uint64_t m_current_column { 0 };
     uint64_t m_current_line { 1 };
     bool m_done_lexing = false;
 
@@ -27,7 +27,7 @@ private:
     Token parse_keyword();
 
     template <class... T>
-    Token make_token(T... params);
+    Token make_token(uint64_t column, uint64_t line, const std::string& source, T... params);
     Token check_for_alternative(char expected, TokenType first, TokenType second);
 
     Token try_lex_one();

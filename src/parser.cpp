@@ -125,10 +125,12 @@ namespace CL {
 
     void Parser::throw_exception(const std::string &why, const Token &cause) {
         std::stringstream stream;
-        stream << "Syntax error "
-               << "at " << cause.get_line() << ":" << cause.get_column() - 1 << ": " << why << "\n";
-        std::string dashes = std::string(cause.get_source_line().size(), '-');
-        dashes[cause.get_column()] = '^';
+        stream << "Syntax error at " << cause.get_line() << ":" << cause.get_column() - 1 << ":\n";
+        stream << "\t" << why << "\n";
+        std::string dashes = std::string(
+                cause.get_source_line().size() > cause.get_column() ?
+                cause.get_source_line().size() : cause.get_column(), '-');
+        dashes[cause.get_column() - 1] = '^';
         stream << "│ " << cause.get_source_line() << "\n";
         stream << "└>" << dashes << "\n";
         throw ParsingException(cause, stream.str());
@@ -203,7 +205,6 @@ namespace CL {
         while (!match(TokenType::Right_Curly_Brace)) {
             list.push_back(expression());
         }
-        consume("Blocks must end with a }", TokenType::Right_Curly_Brace);
         return std::make_unique<BlockExpression>(std::move(list));
     }
 
@@ -422,7 +423,6 @@ namespace CL {
             expressions.emplace_back(l, r);
         }
 
-        consume("dict expressions end with a }", TokenType::Right_Curly_Brace);
         return std::make_unique<DictExpression>(expressions);
     }
 
@@ -433,7 +433,6 @@ namespace CL {
             expressions.push_back(expression());
             match(TokenType::Comma);
         }
-        consume("list expressions end with a ]", TokenType::Right_Square_Brace);
 
         return std::make_unique<ListExpression>(expressions);
     }
