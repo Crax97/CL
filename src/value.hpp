@@ -35,7 +35,7 @@ public:
     virtual std::string to_string() const noexcept
     {
 	std::stringstream stream;
-	stream << "Function @0x" << std::hex;
+	stream << "LambdaStyleFunction @0x" << std::hex;
 	auto addr = reinterpret_cast<uint64_t>(this);
 	stream << addr;
 	return stream.str();

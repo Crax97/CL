@@ -407,7 +407,7 @@ namespace CL {
 
     ExprPtr Parser::fun_expression() {
         auto names = arg_names();
-        consume("Function definitions expect a -> after the fun keyword", TokenType::Arrow);
+        consume("LambdaStyleFunction definitions expect a -> after the fun keyword", TokenType::Arrow);
         auto body = expression();
         return std::make_unique<FunDef>(names, std::move(body));
     }

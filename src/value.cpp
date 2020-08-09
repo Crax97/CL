@@ -222,7 +222,7 @@ std::string Module::string_repr() { return "module " + m_env->to_string(); }
 
 List::List()
 {
-    m_functions["find"] = RuntimeValue(std::make_shared<Function>(
+    m_functions["find"] = RuntimeValue(std::make_shared<LambdaStyleFunction>(
 	[this](const Args& args) {
 	    auto it = std::find(m_list.begin(), m_list.end(), args[0]);
 	    if (it == m_list.end())
@@ -230,7 +230,7 @@ List::List()
 	    return static_cast<Number>(std::distance(m_list.begin(), it));
 	},
 	1));
-    m_functions["contains"] = RuntimeValue(std::make_shared<Function>(
+    m_functions["contains"] = RuntimeValue(std::make_shared<LambdaStyleFunction>(
 	[this](const Args& args) {
 	    auto it = std::find(m_list.begin(), m_list.end(), args[0]);
 	    return it != m_list.end();
@@ -244,7 +244,7 @@ List::List()
 
 Dictionary::Dictionary()
 {
-    m_map["contains"] = RuntimeValue(std::dynamic_pointer_cast<Callable>(std::make_shared<Function>(
+    m_map["contains"] = RuntimeValue(std::dynamic_pointer_cast<Callable>(std::make_shared<LambdaStyleFunction>(
 	[this](const Args& args) {
 	    return m_map.find(args[0].raw_value()) != m_map.end();
 	},
