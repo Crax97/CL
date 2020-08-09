@@ -11,10 +11,15 @@
 #include <cmath>
 #include <fstream>
 #include <memory>
+#include <functional>
 
 constexpr auto PI = 3.14159265359;
 
 namespace CL {
+std::optional<RuntimeValue> exit_impl(int code) {
+    exit(code);
+    return std::nullopt;
+}
 
 class RangeIterator {
 private:
@@ -68,23 +73,19 @@ public:
     }
 };
 
-std::optional<RuntimeValue> import_impl(std::string path) {
-    auto script = Script::from_file(path);
+std::optional<RuntimeValue> import_impl(std::string path, const RuntimeEnvPtr& env) {
+    auto script = Script::from_file(path, env);
     return script.run();
 }
 
 void inject_import_function(const RuntimeEnvPtr& parent_env)
 {
-    static auto fun_ptr = CL::make_function(&import_impl);
+    static std::function fn =  [parent_env] (std::string str){ return import_impl(str, parent_env); };
+    static auto fun_ptr = CL::make_function(fn);
     parent_env->assign("import", RuntimeValue(fun_ptr));
 }
 void inject_stdlib_functions(const RuntimeEnvPtr& env)
 {
-    static auto exit_impl = std::make_shared<VoidFunction>([](const CL::Args& args) {
-	auto code = args[0].as<Number>();;
-	exit(static_cast<int>(code));
-    },
-	1);
     static auto input_impl = std::make_shared<LambdaStyleFunction>([](const auto& _args) {
 	String line;
 	std::getline(std::cin, line);
@@ -143,7 +144,7 @@ void inject_stdlib_functions(const RuntimeEnvPtr& env)
             dict.set_named("__next", RuntimeValue(next_lambda));
             return dict;
         }, 1);
-    env->assign("exit", RuntimeValue(exit_impl));
+    env->assign("exit", RuntimeValue(&exit_impl));
     env->assign("input", RuntimeValue(input_impl));
     env->assign("print", RuntimeValue(print_impl));
     env->assign("repr", RuntimeValue(repr_impl));

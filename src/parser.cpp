@@ -182,7 +182,6 @@ namespace CL {
         while (!match(TokenType::Right_Curly_Brace)) {
             list.push_back(expression());
         }
-        consume("Module definitions must end with a }", TokenType::Right_Curly_Brace);
         return std::make_unique<ModuleExpression>(list);
     }
 
@@ -291,10 +290,10 @@ namespace CL {
     }
 
     ExprPtr Parser::multiplication() {
-        auto left_expr = exponentiation();
+        auto left_expr = unary();
         while (match(TokenType::Star, TokenType::Slash, TokenType::Percent)) {
             auto type = previous().get_type();
-            auto right = exponentiation();
+            auto right = unary();
             left_expr = std::make_unique<BinaryExpression>(std::move(left_expr), (token_type_to_binary_opcode(type)),
                                                            std::move(right));
         }
@@ -322,15 +321,6 @@ namespace CL {
         return left;
     }
 
-    ExprList Parser::get_arguments() {
-        ExprList list;
-        while (!match(TokenType::Right_Brace)) {
-            list.push_back(expression());
-            match(TokenType::Comma);
-        }
-        return list;
-    }
-
     ExprPtr Parser::call() {
         auto left = assign();
         while (match(TokenType::Left_Brace)) {
@@ -343,10 +333,19 @@ namespace CL {
         return left;
     }
 
+    ExprList Parser::get_arguments() {
+        ExprList list;
+        while (!match(TokenType::Right_Brace)) {
+            list.push_back(expression());
+            match(TokenType::Comma);
+        }
+        return list;
+    }
+
     ExprPtr Parser::assign() {
         ExprPtr expr = literal();
         if (match(TokenType::Dot, TokenType::Left_Square_Brace)) {
-            while (match(TokenType::Dot, TokenType::Left_Square_Brace)) {
+            do {
                 ExprPtr what = nullptr;
                 if (previous().get_type() == TokenType::Left_Square_Brace) {
                     what = expression();
@@ -361,7 +360,7 @@ namespace CL {
                 } else {
                     expr = std::make_unique<GetExpression>(expr, what);
                 }
-            }
+            } while (match(TokenType::Dot, TokenType::Left_Square_Brace));
             return expr;
         }
 

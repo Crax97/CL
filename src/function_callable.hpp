@@ -64,10 +64,11 @@ namespace Detail {
 
 }
 
-template<typename... Ts>
+template<typename R, typename... Ts>
 class Function : public Callable {
 public:
-    using function_type = std::function<std::optional<RuntimeValue>(Ts...)>;
+    using return_type = typename std::conditional<std::is_same<R, void>::value, void, std::optional<RuntimeValue>>::type;
+    using function_type = std::function<return_type(Ts...)>;
 private:
     function_type m_fun;
 
@@ -91,5 +92,12 @@ template<typename... Ts>
 static CallablePtr make_function(std::optional<RuntimeValue>(*fun)(Ts...)) {
     return std::make_shared<Function<Ts...>>(std::move(fun));
 }
-
+template<typename Ret, typename... Ts>
+static CallablePtr make_function(std::function<Ret(Ts...)> fun) {
+    return std::make_shared<Function<Ret, Ts...>>(std::move(fun));
+}
+template<typename Ret, typename... Ts>
+static CallablePtr make_function(Ret(*fun)(Ts...)) {
+    return std::make_shared<Function<Ret, Ts...>>(std::move(fun));
+}
 }
