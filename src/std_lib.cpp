@@ -13,8 +13,6 @@
 #include <memory>
 #include <functional>
 
-constexpr auto PI = 3.14159265359;
-
 namespace CL {
 
     class RangeIterator {
@@ -101,10 +99,10 @@ namespace CL {
         return dict;
     }
     Number deg2rad(double deg) {
-        return deg * PI / 180.0;
+        return deg * M_PI / 180.0;
     }
     Number rad2deg(double rad) {
-        return rad * 180.0 / PI;
+        return rad * 180.0 / M_PI;
     }
 
     void inject_import_function(const RuntimeEnvPtr &parent_env) {
@@ -149,10 +147,16 @@ namespace CL {
 
         dict_object.set_named("sin", CL::make_function(sin));
         dict_object.set_named("cos", CL::make_function(cos));
+        dict_object.set_named("tan", CL::make_function(tan));
+        dict_object.set_named("atan2", CL::make_function(atan2));
+        dict_object.set_named("exp", CL::make_function(exp));
+        dict_object.set_named("log10", CL::make_function(log10));
+        dict_object.set_named("log2", CL::make_function(log2));
         dict_object.set_named("deg2rad", CL::make_function(deg2rad));
         dict_object.set_named("rad2deg", CL::make_function(rad2deg));
         dict_object.set_named("abs", CL::make_function(abs));
-        dict_object.set_named("PI", PI);
+        dict_object.set_named("PI", M_PI);
+        dict_object.set_named("E", M_E);
         env->assign("Math", dict_object, true);
     }
 };
