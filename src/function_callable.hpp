@@ -46,20 +46,10 @@ public:
 };
 
 namespace Detail {
-    template<class T, typename = void>
-    struct is_callable
-            : std::false_type {};
-
-    template<class T>
-    struct is_callable<T, std::void_t<decltype(std::declval<T>()())>>
-            : std::true_type{};
-
     template<class U>
     U ensure_is_same(const RuntimeValue& arg) {
-        if (!arg.is<U>()) {
-            throw RuntimeException("Argument is not valid");
-        }
-        return arg.as<U>();
+        static_assert(std::is_convertible<U, RuntimeValue>::value);
+        return (U)arg;
     }
 
 }
@@ -67,14 +57,24 @@ namespace Detail {
 template<typename R, typename... Ts>
 class Function : public Callable {
 public:
-    using return_type = typename std::conditional<std::is_same<R, void>::value, void, std::optional<RuntimeValue>>::type;
-    using function_type = std::function<return_type(Ts...)>;
+    using function_type = std::function<R(Ts...)>;
 private:
     function_type m_fun;
 
     template<size_t... I>
     std::optional<RuntimeValue> call_helper(const Args& args, std::index_sequence<I...>) {
-        return m_fun(Detail::ensure_is_same<Ts>(args[I])...);
+        if constexpr (std::is_same<R, void>::value) {
+            m_fun(Detail::ensure_is_same<Ts>(args[I])...);
+            return std::nullopt;
+        } else if constexpr (std::is_same<R, std::optional<RuntimeValue>>::value) {
+            return m_fun(Detail::ensure_is_same<Ts>(args[I])...);
+        } else {
+            auto ret = m_fun(Detail::ensure_is_same<Ts>(args[I])...);
+            if constexpr (std::is_arithmetic<R>::value)
+                return RuntimeValue::make_from_raw_value(RawValue((Number)ret));
+            else
+                return RuntimeValue::make_from_raw_value(ret);
+        }
     }
 public:
     explicit Function(function_type fun)
@@ -88,16 +88,12 @@ public:
     }
 };
 
-template<typename... Ts>
-static CallablePtr make_function(std::optional<RuntimeValue>(*fun)(Ts...)) {
-    return std::make_shared<Function<Ts...>>(std::move(fun));
+template<typename R, typename... Ts>
+static CallablePtr make_function(R(*fun)(Ts...)) {
+    return std::make_shared<Function<R, Ts...>>(fun);
 }
-template<typename Ret, typename... Ts>
-static CallablePtr make_function(std::function<Ret(Ts...)> fun) {
-    return std::make_shared<Function<Ret, Ts...>>(std::move(fun));
-}
-template<typename Ret, typename... Ts>
-static CallablePtr make_function(Ret(*fun)(Ts...)) {
-    return std::make_shared<Function<Ret, Ts...>>(std::move(fun));
+template<typename R, typename... Ts>
+static CallablePtr make_function(std::function<R(Ts...)> fun) {
+    return std::make_shared<Function<R, Ts...>>(fun);
 }
 }

@@ -47,7 +47,13 @@ public:
 using RawValue = std::variant<std::monostate, bool, Number, String, IndexablePtr, CallablePtr>;
 class RuntimeValue {
 private:
+    struct rv_tag {};
     RawValue m_value;
+    RuntimeValue(rv_tag, RawValue v)
+        : m_value(std::move(v))
+    {
+
+    }
 
 public:
     [[nodiscard]]
@@ -80,6 +86,19 @@ public:
     bool operator>(const RuntimeValue& other) const;
     bool operator<=(const RuntimeValue& other) const;
     bool operator>=(const RuntimeValue& other) const;
+
+    explicit operator std::string() const {
+        return as<std::string>();
+    }
+    explicit operator int() const {
+        return static_cast<int>(as<Number>());
+    }
+    explicit operator Number() const {
+        return as<Number>();
+    }
+    explicit operator bool() const {
+        return static_cast<bool>(as<Number>());
+    }
 
     void set_property(const RuntimeValue& name, RuntimeValue val) const
     {
@@ -144,6 +163,11 @@ public:
     RuntimeValue() noexcept
 	: m_value(std::monostate())
     {
+    }
+
+    static RuntimeValue make_from_raw_value(RawValue value)
+    {
+        return RuntimeValue(rv_tag{}, std::move(value));
     }
 
 #pragma clang diagnostic pop
