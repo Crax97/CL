@@ -52,8 +52,18 @@ namespace CL {
             std::function readline_lam = [this]() {
                 return this->readline();
             };
+            std::function close_lam = [this]() {
+                return this->close();
+            };
+            std::function flush_lam = [this]() {
+                if (!this->m_stream.is_open())
+                    throw RuntimeException("This file is not open");
+                this->m_stream.flush();
+            };
             set_named("write", CL::make_function(write_lam));
             set_named("readline", CL::make_function(readline_lam));
+            set_named("close", CL::make_function(close_lam));
+            set_named("flush", CL::make_function(flush_lam));
         }
     public:
 
@@ -75,20 +85,34 @@ namespace CL {
         }
 
         void write(const std::string& line) {
+            if(!m_stream.is_open())
+                throw RuntimeException("This file is not open");
             if (is_writable()) {
                 m_stream << line;
             } else {
-                throw RuntimeException("Stream is not writable");
+                throw RuntimeException("This file is not writable");
+            }
+        }
+
+        void close() {
+            if(!m_stream.is_open())
+                throw RuntimeException("This file is already closed");
+            m_stream << std::flush;
+            m_stream.close();
+            if (m_stream.fail()) {
+                throw RuntimeException("Failure closing the file");
             }
         }
 
         std::string readline() {
+            if(!m_stream.is_open())
+                throw RuntimeException("This file is not open");
             if (is_readable()) {
                 std::string line;
                 std::getline(m_stream, line);
                 return line;
             } else {
-                throw RuntimeException("Stream is not writable");
+                throw RuntimeException("This file is not writable");
             }
         }
 
@@ -100,6 +124,13 @@ namespace CL {
         [[nodiscard]]
         RuntimeValue next() override {
             return readline();
+        }
+
+        std::string to_string() const override {
+            return "File " + addr_to_hex_str(*this);
+        }
+        std::string string_repr() const override {
+            return "File " + addr_to_hex_str(*this);
         }
     };
 
