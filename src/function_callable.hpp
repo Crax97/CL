@@ -47,7 +47,7 @@ public:
 
 namespace Detail {
     template<class U>
-    U ensure_is_same(const RuntimeValue& arg) {
+    U ensure_is_convertible(const RuntimeValue& arg) {
         static_assert(std::is_convertible<U, RuntimeValue>::value);
         return (U)arg;
     }
@@ -64,12 +64,12 @@ private:
     template<size_t... I>
     std::optional<RuntimeValue> call_helper(const Args& args, std::index_sequence<I...>) {
         if constexpr (std::is_same<R, void>::value) {
-            m_fun(Detail::ensure_is_same<Ts>(args[I])...);
+            m_fun(Detail::ensure_is_convertible<Ts>(args[I])...);
             return std::nullopt;
         } else if constexpr (std::is_same<R, std::optional<RuntimeValue>>::value) {
-            return m_fun(Detail::ensure_is_same<Ts>(args[I])...);
+            return m_fun(Detail::ensure_is_convertible<Ts>(args[I])...);
         } else {
-            auto ret = m_fun(Detail::ensure_is_same<Ts>(args[I])...);
+            auto ret = m_fun(Detail::ensure_is_convertible<Ts>(args[I])...);
             if constexpr (std::is_arithmetic<R>::value)
                 return RuntimeValue::make_from_raw_value(RawValue((Number)ret));
             else
