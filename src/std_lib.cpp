@@ -6,6 +6,7 @@
 #include "function_callable.hpp"
 #include "value.hpp"
 #include "script.h"
+#include "iterable.hpp"
 #include "helpers.h"
 
 #include <cmath>
@@ -15,7 +16,7 @@
 
 namespace CL {
 
-    class RangeIterator {
+    class RangeIterator : public Iterable {
     private:
         Number m_current, m_end, m_step;
 
@@ -25,38 +26,80 @@ namespace CL {
         }
 
         [[nodiscard]]
-        bool has_next() const {
+        bool has_next() const override {
             return m_current < m_end;
         }
 
         [[nodiscard]]
-        RuntimeValue next() {
+        RuntimeValue next() override {
             auto v = m_current;
             m_current += m_step;
             return RuntimeValue(v);
         }
     };
 
-    class FileIterator {
+    class FileObject : public Iterable {
     private:
-        std::ifstream m_stream;
+        std::fstream m_stream;
+        std::ios_base::openmode mode;
+        bool is_readable() { return mode & std::iostream::in; };
+        bool is_writable() { return mode & std::iostream::out; };
+        bool is_appendable() { return mode & std::iostream::app; };
+        void build_lambdas() {
+            std::function write_lam = [this](const std::string& str) {
+                this->write(str);
+            };
+            std::function readline_lam = [this]() {
+                return this->readline();
+            };
+            set(RuntimeValue("write"), CL::make_function(write_lam));
+            set(RuntimeValue("readline"), CL::make_function(readline_lam));
+        }
     public:
-        explicit FileIterator(std::ifstream &&stream) :
-                m_stream(std::move(stream)) {
+
+        explicit FileObject(const std::string& path, const std::string& modestr) {
+            mode = static_cast<std::_Ios_Openmode>(0);
+            if (modestr.find('r') != std::string::npos)
+                mode |= std::ios_base::in;
+            if (modestr.find('w') != std::string::npos)
+                mode |= std::ios_base::out;
+            if (modestr.find('a') != std::string::npos)
+                mode |= std::ios_base::app | std::ios_base::out;
+
+            m_stream.open(path, mode);
+
             if (!m_stream.is_open())
-                throw RuntimeException("Tried opening a bad ifstream");
+                throw RuntimeException("Could not open or create file located at: " + path);
+
+            build_lambdas();
+        }
+
+        void write(const std::string& line) {
+            if (is_writable()) {
+                m_stream << line;
+            } else {
+                throw RuntimeException("Stream is not writable");
+            }
+        }
+
+        std::string readline() {
+            if (is_readable()) {
+                std::string line;
+                std::getline(m_stream, line);
+                return line;
+            } else {
+                throw RuntimeException("Stream is not writable");
+            }
         }
 
         [[nodiscard]]
-        bool has_next() const {
+        bool has_next() const override {
             return !m_stream.eof();
         }
 
         [[nodiscard]]
-        RuntimeValue next() {
-            std::string line;
-            std::getline(m_stream, line);
-            return line;
+        RuntimeValue next() override {
+            return readline();
         }
     };
 
@@ -66,37 +109,12 @@ namespace CL {
     }
 
     std::optional<RuntimeValue> range(Number begin, Number end, Number step) {
-        auto iterator = std::make_shared<RangeIterator>(begin, end, step);
-        auto dict = RuntimeValue(std::make_shared<Dictionary>());
-        auto has_next_lambda = std::make_shared<LambdaStyleFunction>([iterator](const Args& args) {
-                                                                         return iterator->has_next();
-                                                                     },
-                                                                     0);
-        auto next_lambda = std::make_shared<LambdaStyleFunction>([iterator](const Args& args) {
-                                                                     return iterator->next();
-                                                                 },
-                                                                 0);
-        dict.set_named("__has_next", RuntimeValue(has_next_lambda));
-        dict.set_named("__next", RuntimeValue(next_lambda));
-        return dict;
+        return RuntimeValue(std::make_shared<RangeIterator>(begin, end, step));
     }
 
-    std::optional<RuntimeValue> open(const std::string& file_path) {
-        auto stream = std::ifstream(file_path);
-        auto file_it = std::make_shared<FileIterator>(std::move(stream));
-
-        auto dict = RuntimeValue(std::make_shared<Dictionary>());
-        auto has_next_lambda = std::make_shared<LambdaStyleFunction>([file_it](const Args &args) {
-                                                                         return file_it->has_next();
-                                                                     },
-                                                                     0);
-        auto next_lambda = std::make_shared<LambdaStyleFunction>([file_it](const Args &args) {
-                                                                     return file_it->next();
-                                                                 },
-                                                                 0);
-        dict.set_named("__has_next", RuntimeValue(has_next_lambda));
-        dict.set_named("__next", RuntimeValue(next_lambda));
-        return dict;
+    std::optional<RuntimeValue> open(const std::string& file_path, const std::string& openmode) {
+        auto file_it = std::make_shared<FileObject>(file_path, openmode);
+        return RuntimeValue(file_it);
     }
     Number deg2rad(double deg) {
         return deg * M_PI / 180.0;
@@ -154,7 +172,7 @@ namespace CL {
         dict_object.set_named("log2", CL::make_function(log2));
         dict_object.set_named("deg2rad", CL::make_function(deg2rad));
         dict_object.set_named("rad2deg", CL::make_function(rad2deg));
-        dict_object.set_named("abs", CL::make_function(abs));
+        //dict_object.set_named("abs", CL::make_function(abs));
         dict_object.set_named("PI", M_PI);
         dict_object.set_named("E", M_E);
         env->assign("Math", dict_object, true);

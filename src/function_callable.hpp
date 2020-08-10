@@ -2,10 +2,12 @@
 
 #include "commons.hpp"
 #include "value.hpp"
+#include "helpers.h"
 
 #include <optional>
 #include <sstream>
 #include <utility>
+#include <type_traits>
 
 namespace CL {
 class VoidFunction : public Callable {
@@ -46,9 +48,13 @@ public:
 };
 
 namespace Detail {
+    template< class T >
+    // Avoid name clashing with c++20 std::remove_cvref
+    struct remove_cvref_mine {
+        typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+    };
     template<class U>
     U ensure_is_convertible(const RuntimeValue& arg) {
-        static_assert(std::is_convertible<U, RuntimeValue>::value);
         return (U)arg;
     }
 
@@ -73,7 +79,7 @@ private:
             if constexpr (std::is_arithmetic<R>::value)
                 return RuntimeValue::make_from_raw_value(RawValue((Number)ret));
             else
-                return RuntimeValue::make_from_raw_value(ret);
+                return ret;
         }
     }
 public:

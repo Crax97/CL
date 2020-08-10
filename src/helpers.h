@@ -52,4 +52,12 @@ namespace CL {
             return lines;
         }
     };
+
+    template<class, class, typename = void>
+    struct is_explicitly_convertible
+            : std::false_type {};
+
+    template<class From, class To>
+    struct is_explicitly_convertible<From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
+            : std::true_type {};
 }
