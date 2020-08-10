@@ -24,8 +24,8 @@ public:
     void set_named(const std::string& name, RuntimeValue v);
     RuntimeValue& get_named(const std::string& name);
 
-    virtual std::string to_string() = 0;
-    virtual std::string string_repr() = 0;
+    virtual std::string to_string() const = 0;
+    virtual std::string string_repr()const = 0;
 };
 
 class Callable {
@@ -222,7 +222,7 @@ public:
 	    throw RuntimeException("Tried indexing outside this list's range");
 	}
     }
-    std::string to_string() override
+    std::string to_string() const override
     {
 	std::stringstream stream;
 	stream << "[";
@@ -232,7 +232,7 @@ public:
 	stream << "]";
 	return stream.str();
     }
-    std::string string_repr() override
+    std::string string_repr() const override
     {
 	return "list " + to_string();
     }
@@ -255,8 +255,8 @@ public:
 	}
 	throw RuntimeException(s.to_string() + " not bound in dictionary\n");
     }
-    std::string to_string() override;
-    std::string string_repr() override;
+    std::string to_string() const override;
+    std::string string_repr() const override;
 };
 
 class Module : public Indexable {
@@ -272,7 +272,7 @@ public:
 
     RuntimeValue& get(const RuntimeValue& what) override;
     void set(const RuntimeValue&, RuntimeValue) override { throw RuntimeException("Modules aren't externally modifiable."); }
-    std::string to_string() override;
-    std::string string_repr() override;
+    std::string to_string() const override;
+    std::string string_repr() const override;
 };
 } // namespace CL

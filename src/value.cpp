@@ -217,8 +217,8 @@ RuntimeValue& Module::get(const RuntimeValue& what)
     return m_env->get(what.as<String>());
 }
 
-std::string Module::to_string() { return "Module " + addr_to_hex_str(*this); }
-std::string Module::string_repr() { return "module " + m_env->to_string(); }
+std::string Module::to_string() const { return "Module " + addr_to_hex_str(*this); }
+std::string Module::string_repr() const { return "module " + m_env->to_string(); }
 RuntimeValue& Indexable::get_named(const std::string& name) {
     return get(name);
 }
@@ -256,8 +256,8 @@ Dictionary::Dictionary()
 	},
 	1)));
 }
-std::string Dictionary::to_string() { return "Dictionary " + addr_to_hex_str(*this); }
-std::string Dictionary::string_repr()
+std::string Dictionary::to_string() const { return "Dictionary " + addr_to_hex_str(*this); }
+std::string Dictionary::string_repr() const
 {
     std::stringstream stream;
     stream << " {\n";
