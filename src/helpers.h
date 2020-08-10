@@ -60,4 +60,14 @@ namespace CL {
     template<class From, class To>
     struct is_explicitly_convertible<From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
             : std::true_type {};
+
+
+    template <class T>
+    std::string addr_to_hex_str(const T& el)
+    {
+        std::stringstream str;
+        str << "@0x" << std::hex;
+        str << reinterpret_cast<uint64_t>(&el);
+        return str.str();
+    }
 }

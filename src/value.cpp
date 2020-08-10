@@ -21,15 +21,6 @@ std::string num_to_str_pretty_formatted(double n)
     return repr;
 }
 
-template <class T>
-std::string addr_to_hex_str(const T& el)
-{
-    std::stringstream str;
-    str << "@0x" << std::hex;
-    str << reinterpret_cast<uint64_t>(&el);
-    return str.str();
-}
-
 namespace CL {
 struct NegateVisitor {
     RawValue operator()(bool b) { return !b; }
