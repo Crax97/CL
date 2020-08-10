@@ -13,8 +13,8 @@ namespace CL {
             std::function next_lambda = [this](const Args& _args) {
                 return this->next();
             };
-            set(RuntimeValue("has_next"), CL::make_function(has_next_lambda));
-            set(RuntimeValue("next"), CL::make_function(next_lambda));
+            set_named("has_next", CL::make_function(has_next_lambda));
+            set_named("next", CL::make_function(next_lambda));
         }
         virtual bool has_next() const = 0;
         virtual RuntimeValue next() = 0;

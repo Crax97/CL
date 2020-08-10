@@ -219,7 +219,13 @@ RuntimeValue& Module::get(const RuntimeValue& what)
 
 std::string Module::to_string() { return "Module " + addr_to_hex_str(*this); }
 std::string Module::string_repr() { return "module " + m_env->to_string(); }
+RuntimeValue& Indexable::get_named(const std::string& name) {
+    return get(name);
+}
 
+void Indexable::set_named(const std::string &name, RuntimeValue v) {
+    set(name, std::move(v));
+}
 List::List()
 {
     m_functions["find"] = RuntimeValue(std::make_shared<LambdaStyleFunction>(

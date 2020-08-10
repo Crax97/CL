@@ -52,8 +52,8 @@ namespace CL {
             std::function readline_lam = [this]() {
                 return this->readline();
             };
-            set(RuntimeValue("write"), CL::make_function(write_lam));
-            set(RuntimeValue("readline"), CL::make_function(readline_lam));
+            set_named("write", CL::make_function(write_lam));
+            set_named("readline", CL::make_function(readline_lam));
         }
     public:
 

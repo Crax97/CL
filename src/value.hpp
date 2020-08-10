@@ -21,6 +21,8 @@ class Indexable {
 public:
     virtual void set(const RuntimeValue&, RuntimeValue v) = 0;
     virtual RuntimeValue& get(const RuntimeValue&) = 0;
+    void set_named(const std::string& name, RuntimeValue v);
+    RuntimeValue& get_named(const std::string& name);
 
     virtual std::string to_string() = 0;
     virtual std::string string_repr() = 0;
@@ -102,32 +104,40 @@ public:
 
     void set_property(const RuntimeValue& name, RuntimeValue val) const
     {
-	if (is<IndexablePtr>()) {
-	    auto ind = as<IndexablePtr>();
-	    ind->set(name, std::move(val));
-	} else
-	    throw RuntimeException(to_string() + " is not indexable!");
+        if (is<IndexablePtr>()) {
+            auto ind = as<IndexablePtr>();
+            ind->set(name, std::move(val));
+        } else
+            throw RuntimeException(to_string() + " is not indexable!");
     }
 
     [[nodiscard]]
     RuntimeValue& get_property(const RuntimeValue& name) const
     {
-	if (is<IndexablePtr>()) {
-	    auto ind = as<IndexablePtr>();
-	    return ind->get(name);
-	} else
-	    throw RuntimeException(to_string() + " is not indexable!");
+        if (is<IndexablePtr>()) {
+            auto ind = as<IndexablePtr>();
+            return ind->get(name);
+        } else
+            throw RuntimeException(to_string() + " is not indexable!");
     }
 
     void set_named(const std::string& name, RuntimeValue v) const
     {
-	set_property(RuntimeValue(name), std::move(v));
+        if (is<IndexablePtr>()) {
+            auto ind = as<IndexablePtr>();
+            ind->set_named(name, std::move(v));
+        } else
+            throw RuntimeException(to_string() + " is not indexable!");
     }
 
     [[nodiscard]]
     RuntimeValue get_named(const std::string& name) const
     {
-	return get_property(RuntimeValue(name));
+        if (is<IndexablePtr>()) {
+            auto ind = as<IndexablePtr>();
+            return ind->get_named(name);
+        } else
+            throw RuntimeException(to_string() + " is not indexable!");
     }
 
     [[nodiscard]]
