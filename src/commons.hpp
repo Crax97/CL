@@ -10,10 +10,10 @@
 
 #define TODO()                                                                 \
     {                                                                          \
-	std::cerr << "TODO Reached on file " << std::string(__FILE__) << "\n"; \
-	std::cerr << "\trunning function " << std::string(__func__);           \
-	std::cerr << " at line " << std::to_string(__LINE__) << "\n";          \
-	throw std::exception();                                                \
+    std::cerr << "TODO Reached on file " << std::string(__FILE__) << "\n"; \
+    std::cerr << "\trunning function " << std::string(__func__);           \
+    std::cerr << " at line " << std::to_string(__LINE__) << "\n";          \
+    throw std::exception();                                                \
     }
 
 #define NOT_REACHED() TODO()
@@ -36,83 +36,83 @@ using Names = std::vector<std::string>;
 using ExprPtr = std::shared_ptr<Expression>;
 using ExprList = std::vector<ExprPtr>;
 using CallablePtr = std::shared_ptr<Callable>;
-using FunctionCallback = std::function<std::optional<RuntimeValue>(const Args& args)>;
-using VoidFunctionCallback = std::function<void(const Args& args)>;
+using FunctionCallback = std::function<std::optional<RuntimeValue>(const Args &args)>;
+using VoidFunctionCallback = std::function<void(const Args &args)>;
 
 enum class BinaryOp {
-    Multiplication,
-    Division,
-    Modulo,
-    Addition,
-    Subtraction,
-    Exponentiation,
-    Equals,
-    Not_Equals,
-    Less,
-    Less_Equals,
-    Greater,
-    Greater_Equals,
-    And,
-    Or,
+	Multiplication,
+	Division,
+	Modulo,
+	Addition,
+	Subtraction,
+	Exponentiation,
+	Equals,
+	Not_Equals,
+	Less,
+	Less_Equals,
+	Greater,
+	Greater_Equals,
+	And,
+	Or,
 };
 
 enum class UnaryOp {
-    Negation,
-    Identity,
+	Negation,
+	Identity,
 };
 
 enum class TokenType {
-    Eof,
-    Newline,
-    Number,
-    String,
-    Module,
-    Plus,
-    Minus,
-    Star,
-    Slash,
-    Percent,
-    Equals,
-    Dot,
-    Comma,
-    Double_Dots,
-    Point_Comma,
-    Not_Equals,
-    Left_Brace,
-    Left_Curly_Brace,
-    Left_Square_Brace,
-    Right_Brace,
-    Right_Curly_Brace,
-    Right_Square_Brace,
-    Less,
-    Less_Or_Equals,
-    Greater,
-    Greater_Or_Equals,
-    Left_Shift,
-    Right_Shift,
-    Arrow,
-    Ampersand,
-    Pipe,
-    And,
-    Or,
-    Not,
-    Xor,
-    Assign,
-    Let,
-    Fun,
-    Global,
-    Self,
-    Identifier,
-    If,
-    Else,
-    While,
-    For,
-    In,
-    Return,
-    Continue,
-    Break,
-    Dict,
-    List,
+	Eof,
+	Newline,
+	Number,
+	String,
+	Module,
+	Plus,
+	Minus,
+	Star,
+	Slash,
+	Percent,
+	Equals,
+	Dot,
+	Comma,
+	Double_Dots,
+	Point_Comma,
+	Not_Equals,
+	Left_Brace,
+	Left_Curly_Brace,
+	Left_Square_Brace,
+	Right_Brace,
+	Right_Curly_Brace,
+	Right_Square_Brace,
+	Less,
+	Less_Or_Equals,
+	Greater,
+	Greater_Or_Equals,
+	Left_Shift,
+	Right_Shift,
+	Arrow,
+	Ampersand,
+	Pipe,
+	And,
+	Or,
+	Not,
+	Xor,
+	Assign,
+	Let,
+	Fun,
+	Global,
+	Self,
+	Identifier,
+	If,
+	Else,
+	While,
+	For,
+	In,
+	Return,
+	Continue,
+	Break,
+	Dict,
+	List,
 
 };
 

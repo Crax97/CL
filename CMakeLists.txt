@@ -3,17 +3,17 @@ project(calculator)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
-set(SOURCES 
-	src/main.cpp
-	src/commons.cpp
-	src/string_visitor.cpp
-	src/lexer.cpp
-	src/parser.cpp
-	src/tokens.cpp
-	src/value.cpp
-	src/ast_evaluator.cpp
-	src/environment.cpp
-	src/std_lib.cpp
+set(SOURCES
+        src/main.cpp
+        src/commons.cpp
+        src/string_visitor.cpp
+        src/lexer.cpp
+        src/parser.cpp
+        src/tokens.cpp
+        src/value.cpp
+        src/ast_evaluator.cpp
+        src/environment.cpp
+        src/std_lib.cpp
         src/script.cpp src/script.h src/helpers.h)
 
 
