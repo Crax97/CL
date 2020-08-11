@@ -14,8 +14,14 @@
 #include <fstream>
 #include <memory>
 #include <functional>
+#include <random>
 
 namespace CL {
+
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_real_distribution<Number>
+	distrib(0, 1);
 
 class RangeIterator : public Iterable {
 private:
@@ -158,6 +164,9 @@ Number deg2rad(double deg) {
 Number rad2deg(double rad) {
 	return rad * 180.0 / M_PI;
 }
+Number random() {
+	return distrib(gen);
+}
 
 void inject_import_function(const RuntimeEnvPtr &parent_env) {
 	static std::function fn = [parent_env](const std::string &str) {
@@ -197,6 +206,7 @@ void inject_stdlib_functions(const RuntimeEnvPtr &env) {
 	env->assign("input", RuntimeValue(input_impl));
 	env->assign("print", RuntimeValue(print_impl));
 	env->assign("repr", RuntimeValue(repr_impl));
+	env->assign("random", CL::make_function(random));
 	env->assign("range", range_impl);
 	env->assign("open", open_impl);
 }
