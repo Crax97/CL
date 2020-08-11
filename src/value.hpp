@@ -69,7 +69,7 @@ public:
 	bool is() const noexcept { return std::holds_alternative<T>(m_value); }
 	template<class T>
 	[[nodiscard]]
-	T as() const {
+	const T &as() const {
 		if(is<T>()) {
 			return std::get<T>(m_value);
 		}
@@ -91,7 +91,7 @@ public:
 	bool operator<=(const RuntimeValue &other) const;
 	bool operator>=(const RuntimeValue &other) const;
 
-	explicit operator std::string() const {
+	explicit operator const std::string &() const {
 		return as<std::string>();
 	}
 	explicit operator int() const {

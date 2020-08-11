@@ -47,7 +47,8 @@ private:
 	bool is_writable() { return mode & std::iostream::out; };
 	bool is_appendable() { return mode & std::iostream::app; };
 	void build_lambdas() {
-		std::function write_lam = [this](const std::string &str) {
+		std::function
+			write_lam = [this](const std::string &str) {
 			this->write(str);
 		};
 		std::function readline_lam = [this]() {

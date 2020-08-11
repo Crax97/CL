@@ -47,9 +47,21 @@ template<class T>
 struct remove_cvref_mine {
 	typedef std::remove_cv_t<std::remove_reference_t<T>> type;
 };
+
+template<typename From, typename To, typename = void>
+struct is_convertible_to : std::false_type {};
+
+template<typename From, typename To>
+struct is_convertible_to<From, To,
+						 std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
+	: std::true_type {
+};
+
 template<class U>
 U ensure_is_convertible(const RuntimeValue &arg) {
-	return (U) arg;
+	static_assert(is_convertible_to<RuntimeValue,
+									typename remove_cvref_mine<U>::type>::value);
+	return static_cast<U>(arg);
 }
 
 }
