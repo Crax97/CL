@@ -10,6 +10,7 @@
 #include "helpers.h"
 
 #include <cmath>
+#include <stdlib.h>
 #include <fstream>
 #include <memory>
 #include <functional>
@@ -200,20 +201,22 @@ void inject_stdlib_functions(const RuntimeEnvPtr &env) {
 }
 
 void inject_math_functions(const RuntimeEnvPtr &env) {
-	auto dict_object = RuntimeValue(std::make_shared<Dictionary>());
+	auto dict_object = std::make_shared<Dictionary>();
 
-	dict_object.set_named("sin", CL::make_function(sin));
-	dict_object.set_named("cos", CL::make_function(cos));
-	dict_object.set_named("tan", CL::make_function(tan));
-	dict_object.set_named("atan2", CL::make_function(atan2));
-	dict_object.set_named("exp", CL::make_function(exp));
-	dict_object.set_named("log10", CL::make_function(log10));
-	dict_object.set_named("log2", CL::make_function(log2));
-	dict_object.set_named("deg2rad", CL::make_function(deg2rad));
-	dict_object.set_named("rad2deg", CL::make_function(rad2deg));
-	//dict_object.set_named("abs", CL::make_function(abs));
-	dict_object.set_named("PI", M_PI);
-	dict_object.set_named("E", M_E);
-	env->assign("Math", dict_object, true);
+	dict_object->set_named("sin", CL::make_function(sin));
+	dict_object->set_named("cos", CL::make_function(cos));
+	dict_object->set_named("tan", CL::make_function(tan));
+	dict_object->set_named("atan2", CL::make_function(atan2));
+	dict_object->set_named("exp", CL::make_function(exp));
+	dict_object->set_named("log10", CL::make_function(log10));
+	dict_object->set_named("log2", CL::make_function(log2));
+	dict_object->set_named("deg2rad", CL::make_function(deg2rad));
+	dict_object->set_named("rad2deg", CL::make_function(rad2deg));
+
+	// Explicit instantiation because there are more overloads for abs
+	dict_object->set_named("abs", CL::make_function<double, double>(abs));
+	dict_object->set_named("PI", M_PI);
+	dict_object->set_named("E", M_E);
+	env->assign("Math", RuntimeValue(dict_object), true);
 }
 };
