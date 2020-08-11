@@ -42,12 +42,6 @@ public:
 };
 
 namespace Detail {
-template<class T>
-// Avoid name clashing with c++20 std::remove_cvref
-struct remove_cvref_mine {
-	typedef std::remove_cv_t<std::remove_reference_t<T>> type;
-};
-
 template<typename From, typename To, typename = void>
 struct is_convertible_to : std::false_type {};
 
@@ -59,8 +53,7 @@ struct is_convertible_to<From, To,
 
 template<class U>
 U ensure_is_convertible(const RuntimeValue &arg) {
-	static_assert(is_convertible_to<RuntimeValue,
-									typename remove_cvref_mine<U>::type>::value);
+	static_assert(is_convertible_to<RuntimeValue, U>::value);
 	return static_cast<U>(arg);
 }
 
