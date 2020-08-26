@@ -1,5 +1,5 @@
 # This programs computes an approximation of Pi using the Montecarlo method
-
+steps = 10000000
 h = fun(x, y) -> {
     if (x ^ 2 + y ^ 2)^0.5 < 1
         return 1
@@ -18,4 +18,4 @@ montecarlo = fun(steps, f) -> {
     return 4 *  hits / steps
 }
 
-print(montecarlo(100000, h), "Math.PI is: ", Math.PI)
+print(montecarlo(steps, h), "Math.PI is: ", Math.PI)
