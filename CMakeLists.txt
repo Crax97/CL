@@ -14,7 +14,7 @@ set(SOURCES
         src/ast_evaluator.cpp
         src/environment.cpp
         src/std_lib.cpp
-        src/script.cpp src/script.h src/helpers.h)
+        src/script.cpp src/script.h src/helpers.h src/dictionary.cpp src/dictionary.h)
 
 
 set(CMAKE_CXX_STANDARD 17)

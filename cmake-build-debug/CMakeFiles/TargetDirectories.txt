@@ -1,0 +1,3 @@
+/home/crax/Documents/Projects/CL/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/crax/Documents/Projects/CL/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/crax/Documents/Projects/CL/cmake-build-debug/CMakeFiles/calc.dir

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="calculator"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/crax/Documents/Projects/CL/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/crax/Documents/Projects/CL/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/crax/Documents/Projects/CL/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="calc">
+				<Option output="/home/crax/Documents/Projects/CL/cmake-build-debug/calc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/crax/Documents/Projects/CL/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 calc"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="calc/fast">
+				<Option output="/home/crax/Documents/Projects/CL/cmake-build-debug/calc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/crax/Documents/Projects/CL/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/x86_64-pc-linux-gnu"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../include/c++/10.2.0/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 calc/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/home/crax/Documents/Projects/CL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/ast_evaluator.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/ast_evaluator.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/commons.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/commons.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/dictionary.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/dictionary.h">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/environment.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/environment.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/helpers.h">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/lexer.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/lexer.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/main.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/parser.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/parser.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/script.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/script.h">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/std_lib.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/std_lib.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/string_visitor.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/string_visitor.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/tokens.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/tokens.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/value.cpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/src/value.hpp">
+			<Option target="calc"/>
+		</Unit>
+		<Unit filename="/home/crax/Documents/Projects/CL/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
