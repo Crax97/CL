@@ -1,5 +1,266 @@
 //
-// Created by gsoli on 01/12/2020.
+// Created by Giovanni "Crax" Solimeno on 01/12/2020.
 //
 
 #include "vm_ast_evaluator.h"
+
+class CompilationException : public CL::CLException {
+public:
+    explicit CompilationException(const std::string &error_message) :
+        CL::CLException("Compilation error: " + error_message) {}
+};
+
+void ensure(bool expression, const std::string &error_message) {
+    if(!expression) { throw CompilationException(error_message); }
+}
+
+namespace CL {
+
+    Opcode opcode_from_binary(BinaryOp op) {
+        switch(op) {
+            case BinaryOp::Addition: return Opcode::Add;
+            case BinaryOp::Subtraction: return Opcode::Sub;
+            case BinaryOp::Multiplication: return Opcode::Mul;
+            case BinaryOp::Division: return Opcode::Div;
+            case BinaryOp::Modulo: return Opcode::Mod;
+            case BinaryOp::Greater: return Opcode::Greater;
+            case BinaryOp::Greater_Equals: return Opcode::Greater_Eq;
+            case BinaryOp::Less: return Opcode::Less;
+            case BinaryOp::Less_Equals: return Opcode::Less_Eq;
+            case BinaryOp::Equals: return Opcode::Eq;
+            case BinaryOp::Not_Equals: return Opcode::Neq;
+            case BinaryOp::Exponentiation: return Opcode::Pow;
+            default:
+                throw CLException("Or/And shouldn't be here");
+        }
+    }
+
+    Opcode opcode_from_unary(UnaryOp op) {
+        switch(op) {
+            case UnaryOp::Negation: return Opcode::Neg;
+            case UnaryOp::Identity: return Opcode::Nop;
+        }
+    }
+
+    void VMASTEvaluator::visit_number_expression(CL::Number n) {
+        uint32_t index = add_literal(n);
+        current_frame().add_opcode32(Opcode::Load_Literal, index);
+    }
+
+    void VMASTEvaluator::visit_string_expression(String s) {
+        uint32_t index = add_literal(s);
+        current_frame().add_opcode32(Opcode::Load_Literal, index);
+    }
+
+    void VMASTEvaluator::visit_list_expression(const ExprList &List) {
+        for(auto& expr : List) {
+            expr->evaluate(*this);
+        }
+        current_frame().add_opcode32(Opcode::List, List.size());
+    }
+
+    void VMASTEvaluator::visit_dict_expression(const std::vector<std::pair<ExprPtr, ExprPtr>> &dict_expressions) {
+        for(auto& pair : dict_expressions) {
+            pair.first->evaluate(*this);
+            pair.second->evaluate(*this);
+        }
+        current_frame().add_opcode32(Opcode::Dict, dict_expressions.size());
+    }
+
+    void VMASTEvaluator::visit_and_expression(const ExprPtr &left, const ExprPtr &right) {
+        right->evaluate(*this);
+        int jump_position = current_frame().add_opcode32(Opcode::Jump_False, 0);
+        left->evaluate(*this);
+        current_frame().set32(jump_position, current_frame().bytecode_count());
+    }
+    void VMASTEvaluator::visit_or_expression(const ExprPtr &left, const ExprPtr &right) {
+        right->evaluate(*this);
+        int jump_position = current_frame().add_opcode32(Opcode::Jump_True, 0);
+        left->evaluate(*this);
+        current_frame().set32(jump_position, current_frame().bytecode_count());
+    }
+
+    void VMASTEvaluator::visit_binary_expression(const ExprPtr &left, BinaryOp op, const ExprPtr &right) {
+        right->evaluate(*this);
+        left->evaluate(*this);
+        current_frame().add_opcode(opcode_from_binary(op));
+    }
+    void VMASTEvaluator::visit_unary_expression(UnaryOp op, const ExprPtr &expr) {
+        expr->evaluate(*this);
+        current_frame().add_opcode(opcode_from_unary(op));
+    }
+
+    void VMASTEvaluator::visit_var_expression(const std::string &var) {
+        int name_index = get_name_index(var);
+        ensure(name_index != -1, "Variable not defined: " + var);
+        current_frame().add_opcode(Opcode::Load, name_index);
+    }
+
+    void VMASTEvaluator::visit_assign_expression(const std::string &name, const ExprPtr &value) {
+        int name_index = get_name_index(name);
+        if (name_index == -1) {
+            name_index = add_name(name);
+        }
+        value->evaluate(*this);
+        current_frame().add_opcode(Opcode::Store, name_index);
+
+    }
+
+    void VMASTEvaluator::visit_fun_call(const ExprPtr &fun, const ExprList &args) {
+        current_frame().add_opcode(Opcode::Call, args.size());
+        for (auto& arg : args) {
+            arg->evaluate(*this);
+        }
+    }
+
+    void VMASTEvaluator::visit_fun_def(const Names &fun_names, const ExprPtr &body) {
+        for (auto& name : fun_names) {
+            add_name(name);
+        }
+        auto function = std::make_shared<FunctionFrame>(fun_names);
+        push(function);
+        body->evaluate(*this);
+        pop();
+
+        int32_t index = add_literal(function);
+        current_frame().add_opcode32(Opcode::Load_Literal, index);
+    }
+
+    void VMASTEvaluator::visit_block_expression(const ExprList &block) {
+        current_frame().add_opcode(Opcode::Push_Frame);
+        for(auto& expr : block) {
+            expr->evaluate(*this);
+        }
+        current_frame().add_opcode(Opcode::Pop_Frame);
+    }
+
+    void VMASTEvaluator::visit_return_expression(const ExprPtr &expr) {
+        expr->evaluate(*this);
+        current_frame().add_opcode(Opcode::Return);
+    }
+
+    void VMASTEvaluator::visit_break_expression() {
+        current_frame().add_opcode(Opcode::Break);
+    }
+
+    void VMASTEvaluator::visit_continue_expression() {
+        current_frame().add_opcode(Opcode::Continue);
+    }
+
+    void VMASTEvaluator::visit_if_expression(const ExprPtr &cond, const ExprPtr &expr, const ExprPtr &else_branch) {
+        cond->evaluate(*this);
+        int jump_else_location = current_frame().add_opcode32(Opcode::Jump_False, 0);
+        expr->evaluate(*this);
+        int jump_if_location = current_frame().add_opcode32(Opcode::Jump, 0);
+        current_frame().set32(jump_else_location, current_frame().bytecode_count());
+        else_branch->evaluate(*this);
+        current_frame().set32(jump_if_location, current_frame().bytecode_count());
+    }
+
+    void VMASTEvaluator::visit_while_expression(const ExprPtr &cond, const ExprPtr &body) {
+        cond->evaluate(*this);
+        int jump_location = current_frame().add_opcode32(Opcode::Jump_False, 0);
+        body->evaluate(*this);
+        current_frame().set32(jump_location, current_frame().bytecode_count());
+    }
+
+    void VMASTEvaluator::visit_for_expression(const std::string &name, const ExprPtr &iterator, const ExprPtr &body) {
+        iterator->evaluate(*this);
+        current_frame().add_opcode(Opcode::Get_Iter);
+
+        current_frame().add_opcode(Opcode::Iter_Has_Next);
+        int for_location = current_frame().bytecode_count();
+        current_frame().add_opcode32(Opcode::Jump_False, 0);
+        int jump_false_location = current_frame().bytecode_count();
+        current_frame().add_opcode(Opcode::Get_Iter_Next);
+        body->evaluate(*this);
+        current_frame().add_opcode32(Opcode::Jump, for_location);
+
+        current_frame().set32(jump_false_location, current_frame().bytecode_count());
+    }
+
+    void VMASTEvaluator::visit_set_expression(const ExprPtr &obj, const ExprPtr &what, const ExprPtr &value) {
+        obj->evaluate(*this);
+        what->evaluate(*this);
+        value->evaluate(*this);
+        current_frame().add_opcode(Opcode::Set);
+    }
+
+    void VMASTEvaluator::visit_get_expression(const ExprPtr &obj, const ExprPtr &what) {
+        obj->evaluate(*this);
+        what->evaluate(*this);
+        current_frame().add_opcode(Opcode::Get);
+    }
+
+    void VMASTEvaluator::visit_module_definition(const ExprList &expressions) {
+        current_frame().add_opcode32(Opcode::Module, expressions.size());
+        for (auto& expr : expressions) {
+            expr->evaluate(*this);
+        }
+    }
+
+    uint32_t VMASTEvaluator::add_literal(const LiteralValue& v) {
+        literals.insert(v);
+        return std::distance(literals.begin(), literals.find(v));
+    }
+
+    uint16_t VMASTEvaluator::add_name(const std::string& name) {
+        names.insert(name);
+        return std::distance(names.begin(), names.find(name));
+    }
+
+    StackFrame &VMASTEvaluator::current_frame() {
+        return *peek();
+    }
+
+    int VMASTEvaluator::get_name_index(const std::string &name) {
+        auto name_found = names.find(name);
+        if (name_found != names.end()) {
+            return std::distance(names.begin(), name_found);
+        }
+        return -1;
+    }
+
+    int StackFrame::add_opcode(Opcode op) {
+        bytecode.push_back(static_cast<uint8_t>(op));
+        return bytecode_count() - 1;
+    }
+
+    int StackFrame::add_opcode(Opcode op, OpcodeValue16 value) {
+        int position = bytecode_count();
+        bytecode.push_back(static_cast<uint8_t>(op));
+        bytecode.push_back(static_cast<uint8_t>(value >> 8));
+        bytecode.push_back(static_cast<uint8_t>(value & 0x00FF));
+        return position;
+    }
+
+    int StackFrame::add_opcode32(Opcode op, OpcodeValue32 value) {
+        int position = bytecode_count();
+        bytecode.push_back(static_cast<uint8_t>(op));
+        bytecode.push_back(static_cast<uint8_t>(value >> 24));
+        bytecode.push_back(static_cast<uint8_t>(value >> 16));
+        bytecode.push_back(static_cast<uint8_t>(value >> 8));
+        bytecode.push_back(static_cast<uint8_t>(value & 0x00FF));
+        return position;
+    }
+
+    [[maybe_unused]] int StackFrame::set16(int position, OpcodeValue16 value) {
+        uint8_t higher = value >> 8;
+        uint8_t lower = value & 0xFF;
+        bytecode[position] = higher;
+        bytecode[position + 1] = lower;
+        return position;
+    }
+
+    int StackFrame::set32(int position, OpcodeValue32 value) {
+        uint8_t byte1 = value >> 24;
+        uint8_t byte2 = value >> 16;
+        uint8_t byte3 = value >> 8;
+        uint8_t byte4 = value & 0xFF;
+        bytecode[position + 0] = byte1;
+        bytecode[position + 1] = byte2;
+        bytecode[position + 2] = byte3;
+        bytecode[position + 3] = byte4;
+        return position;
+    }
+}

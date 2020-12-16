@@ -5,15 +5,19 @@
 #include <memory>
 #include <string>
 
-#include "ast_evaluator.hpp"
+#include "vm_ast_evaluator.h"
 #include "commons.hpp"
 #include "environment.hpp"
 #include "exceptions.hpp"
+#include "lexer.hpp"
 #include "std_lib.hpp"
 #include "script.h"
+#include "parser.hpp"
+
+void print_program(CL::Program &program);
 
 void run_script(const std::string &script_path,
-				std::shared_ptr<CL::StackedEnvironment> env) {
+                std::shared_ptr<CL::StackedEnvironment> env) {
 	auto script = CL::Script::from_file(script_path, env);
 	script.run();
 }
@@ -42,15 +46,64 @@ void run_from_cli(const CL::RuntimeEnvPtr &env) {
 	while (true) {
 		try {
 			auto source = read_from_console();
-			auto script = CL::Script::from_source(source, env);
-			auto result = script.run();
-			if(result.has_value()) {
-				std::cout << result.value().to_string() << "\n";
-			}
-		} catch (CL::CLException &ex) {
+            auto stream = std::stringstream(source);
+            auto lexer = CL::Lexer(stream);
+            auto parser = CL::Parser(lexer);
+            auto expressions = parser.parse_all();
+            CL::VMASTEvaluator compiler;
+            for(auto& expr : expressions) {
+                expr->evaluate(compiler);
+            }
+            CL::Program program = compiler.get_program();
+            print_program(program);
+
+        } catch (CL::CLException &ex) {
 			std::cerr << "Error: " << ex.get_message() << "\n";
 		}
 	}
+}
+std::string print_bytecode(int num_tabs, std::vector<uint8_t> &bytecode) {
+    std::stringstream bytecode_string;
+    for (auto byte : bytecode) {
+        bytecode_string << std::string(num_tabs, '\t') << "0x" <<
+                        std::hex << std::uppercase << (int) byte << std::nouppercase << std::dec << "\n";
+    }
+    return bytecode_string.str();
+}
+void print_program(CL::Program &program) {
+    struct literal_visitor {
+        std::string operator()(const CL::Number n) { return std::to_string(n); }
+        std::string operator()(const CL::String& s) { return s; }
+        std::string operator()(const std::shared_ptr<CL::FunctionFrame> frame) {
+            std::stringstream name_stream;
+            name_stream << "Function (";
+            for (auto& name : frame->names) {
+                name_stream << name << ",";
+            }
+            name_stream << ")\n";
+            return name_stream.str() + print_bytecode(3, frame->bytecode); }
+    };
+    std::cout << "Program info: \n";
+    std::cout << "\t" << program.names.size() << " names\n";
+    for (auto& name : program.names) {
+        std::cout << "\t\t " << name << "\n";
+    }
+    std::cout << "\t" << program.literals.size() << " literals\n";
+    for (auto& literal : program.literals) {
+        std::cout << "\t\t " << std::visit(literal_visitor{}, literal) << "\n";
+    }
+    std::cout << "\t" << program.functions.size() << " functions\n";
+
+    for (auto& function : program.functions) {
+        std::cout << "\t\t (";
+        for(auto& name : function->names) {
+            std::cout << name << ", ";
+        }
+        std::cout << ")\n";
+    }
+
+    std::cout << "\tmain section:\n" << print_bytecode(1, program.main->bytecode);
+
 }
 
 int main(int argc, char **argv) {
