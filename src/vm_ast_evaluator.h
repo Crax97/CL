@@ -9,50 +9,53 @@
 #include "nodes.hpp"
 #include "stack_based_evaluator.hpp"
 
-
-
 namespace CL {
     enum class Opcode : uint8_t {
-        Nop, // Does nothing, wasting one vm cycle
-        Load_Literal, // push(literals[read32])
-        Load, // push(memory[names[read16()]])
-        Store, // memory[names[read16()]] = stack[0], pops stack
-        Set, // stack[-2][stack[-1]] = stack[0], pops stack, pushes stack[0]
-        Get, // push stack[-1][stack[0]], pops stack,
-        List, // n -> The number of elements belonging to the list
-        Dict, // m -> The number of associations belonging to the list
-        Neg, // push(-stack[0]), pops stack
-        Add, // push(stack[0] + stack[-1]), pops stack
-        Sub, // push(stack[0] - stack[-1]), pops stack
-        Mul, // push(stack[0] * stack[-1]), pops stack
-        Div, // push(stack[0] / stack[-1]), pops stack
-        Mod, // push(stack[0] % stack[-1]), pops stack
-        Pow, // push(stack[0] ^ stack[-1]), pops stack
-        Less, // push(stack[0] < stack[-1]), pops stack
-        Less_Eq, // push(stack[0] <= stack[-1]), pops stack
-        Greater, // push(stack[0] > stack[-1]), pops stack
-        Greater_Eq, // push(stack[0] >= stack[-1]), pops stack
-        Eq, // push(stack[0] == stack[-1]), pops stack
-        Neq, // push(stack[0] != stack[-1]), pops stack
-        True [[maybe_unused]], // push(truthy(stack[0])), pops stack
-        Push_Frame, // push new stack frame
-        Pop_Frame, // pops last stack frame
-        Jump_True, // Jumps to read32() if true
-        Jump_False, // Jumps to read32() if false
-        Jump, // Jumps to read32()
-        Call, // k -> number of arguments, stack[0](arg_1...arg_k) where arg_i is the result of the i-eth expression after the current opcode
-        Module, // k -> the next k expressions belong to the module
-        Return, // stack_frames[-1].return_value = stack[0]; stack_frames.pop();
-        Break, // stack_frames.pop();
-        Continue, // stack_frames.pop();
-        Get_Iter, // push(get_iterator(stack[0])), pops stack[0]
-        Iter_Has_Next, // push(has_next(stack[0])), pops nothing
-        Get_Iter_Next // push(get_next(stack[0])), pops nothing
+        Nop                 = 0x00, // Does nothing, wasting one vm cycle
+        Load_Literal        = 0x01, // push(literals[read32])
+        Load                = 0x02, // push(memory[names[read16()]])
+        Store               = 0x03, // memory[names[read16()]] = stack[0], pops stack
+        Set                 = 0x04, // stack[-2][stack[-1]] = stack[0], pops stack, pushes stack[0]
+        Get                 = 0x05, // push stack[-1][stack[0]], pops stack,
+        List                = 0x06, // n -> The number of elements belonging to the list
+        Dict                = 0x07, // m -> The number of associations belonging to the list
+        Neg                 = 0x08, // push(-stack[0]), pops stack
+        Add                 = 0x09, // push(stack[0] + stack[-1]), pops stack
+        Sub                 = 0x0A, // push(stack[0] - stack[-1]), pops stack
+        Mul                 = 0x0B, // push(stack[0] * stack[-1]), pops stack
+        Div                 = 0x0C, // push(stack[0] / stack[-1]), pops stack
+        Mod                 = 0x0D, // push(stack[0] % stack[-1]), pops stack
+        Pow                 = 0x0E, // push(stack[0] ^ stack[-1]), pops stack
+        Less                = 0x10, // push(stack[0] < stack[-1]), pops stack
+        Less_Eq             = 0x11, // push(stack[0] <= stack[-1]), pops stack
+        Greater             = 0x12, // push(stack[0] > stack[-1]), pops stack
+        Greater_Eq          = 0x13, // push(stack[0] >= stack[-1]), pops stack
+        Eq                  = 0x14, // push(stack[0] == stack[-1]), pops stack
+        Neq                 = 0x15, // push(stack[0] != stack[-1]), pops stack
+        True                = 0x16, // push(truthy(stack[0])), pops stack
+        Push_Frame          = 0x20, // push new stack frame
+        Pop_Frame           = 0x21, // pops last stack frame
+        Jump_True           = 0x22, // Jumps to read32() if true
+        Jump_False          = 0x23, // Jumps to read32() if false
+        Jump                = 0x24, // Jumps to read32()
+        Call                = 0x25, // k -> number of arguments, stack[0](arg_1...arg_k) where arg_i is the result of the i-eth expression after the current opcode
+        Module              = 0x26, // k -> the next k expressions belong to the module
+        Return              = 0x27, // stack_frames[-1].return_value = stack[0]; stack_frames.pop();
+        Break               = 0x28, // stack_frames.pop();
+        Continue            = 0x29, // stack_frames.pop();
+        Get_Iter            = 0x2A, // push(get_iterator(stack[0])), pops stack[0]
+        Iter_Has_Next       = 0x2B, // push(has_next(stack[0])), pops nothing
+        Get_Iter_Next       = 0x2C, // push(get_next(stack[0])), pops nothing
     };
+    std::string opcode_to_string(Opcode op);
+    Opcode byte_to_opcode(uint8_t code);
+
     using OpcodeValue16 = uint16_t;
     using OpcodeValue32 = uint32_t;
     struct StackFrame {
         std::vector<uint8_t> bytecode;
+        std::set<std::string> names;
+
         int add_opcode(Opcode op);
         int add_opcode(Opcode op, OpcodeValue16 value);
         int add_opcode32(Opcode op, OpcodeValue32 value);
@@ -73,7 +76,6 @@ namespace CL {
     struct Program {
     public:
         [[maybe_unused]] std::shared_ptr<StackFrame> main;
-        [[maybe_unused]] std::vector<std::shared_ptr<FunctionFrame>> functions;
         [[maybe_unused]] std::set<std::string> names;
         [[maybe_unused]] std::set<LiteralValue> literals;
     };
@@ -82,7 +84,6 @@ namespace CL {
             public StackMachine<std::shared_ptr<StackFrame>> {
     private:
     protected:
-        std::vector<std::shared_ptr<FunctionFrame>> functions;
         std::set<std::string> names;
         std::set<LiteralValue> literals;
     public:
@@ -126,7 +127,7 @@ namespace CL {
                                           const ExprPtr &what) override;
         void visit_module_definition(const ExprList &expressions) override;
 
-        [[maybe_unused]] Program get_program() { return Program {peek(), functions, names, literals}; }
+        [[maybe_unused]] Program get_program() { return Program {peek(), names, literals}; }
 
         StackFrame& current_frame();
         uint32_t add_literal(const LiteralValue& v);

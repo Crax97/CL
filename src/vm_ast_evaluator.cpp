@@ -165,6 +165,7 @@ namespace CL {
     }
 
     void VMASTEvaluator::visit_for_expression(const std::string &name, const ExprPtr &iterator, const ExprPtr &body) {
+        add_name(name);
         iterator->evaluate(*this);
         current_frame().add_opcode(Opcode::Get_Iter);
 
@@ -262,5 +263,50 @@ namespace CL {
         bytecode[position + 2] = byte3;
         bytecode[position + 3] = byte4;
         return position;
+    }
+
+    std::string opcode_to_string(Opcode op) {
+        switch (op) {
+
+            case Opcode::Nop: return "Nop";
+            case Opcode::Load_Literal: return "Load Literal";
+            case Opcode::Load: return "Load";
+            case Opcode::Store: return "Store";
+            case Opcode::Set: return "Set";
+            case Opcode::Get: return "Get";
+            case Opcode::List: return "List";
+            case Opcode::Dict: return "Dict";
+            case Opcode::Neg: return "Neg";
+            case Opcode::Add: return "Add";
+            case Opcode::Sub: return "Sub";
+            case Opcode::Mul: return "Mul";
+            case Opcode::Div: return "Div";
+            case Opcode::Mod: return "Mod";
+            case Opcode::Pow: return "Pow";
+            case Opcode::Less: return "Less";
+            case Opcode::Less_Eq: return "Less Equals";
+            case Opcode::Greater: return "Greater";
+            case Opcode::Greater_Eq: return "Greater Equals";
+            case Opcode::Eq: return "Eq";
+            case Opcode::Neq: return "Neq";
+            case Opcode::True: return "Is True";
+            case Opcode::Push_Frame: return "Push Frame";
+            case Opcode::Pop_Frame: return "Pop Frame";
+            case Opcode::Jump_True: return "Jump If True";
+            case Opcode::Jump_False: return "Jump If False";
+            case Opcode::Jump: return "Jump";
+            case Opcode::Call: return "Call";
+            case Opcode::Module: return "Module";
+            case Opcode::Return: return "Return";
+            case Opcode::Break: return "Break";
+            case Opcode::Continue: return "Continue";
+            case Opcode::Get_Iter: return "Get Iter";
+            case Opcode::Iter_Has_Next: return "Iter Has Next";
+            case Opcode::Get_Iter_Next: return "Get Iter Next";
+        }
+    }
+
+    Opcode byte_to_opcode(uint8_t code) {
+        return static_cast<Opcode>(code);
     }
 }

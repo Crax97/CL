@@ -63,10 +63,53 @@ void run_from_cli(const CL::RuntimeEnvPtr &env) {
 	}
 }
 std::string print_bytecode(int num_tabs, std::vector<uint8_t> &bytecode) {
+    using namespace CL;
     std::stringstream bytecode_string;
-    for (auto byte : bytecode) {
+    int i = 0;
+    auto read8 = [&]() { return bytecode[i++]; };
+    auto read16 = [&]() { return static_cast<uint16_t>(read8()) << 8 | read8(); };
+    auto read32 = [&]() { return static_cast<uint16_t>(read8()) << 24 | static_cast<uint16_t>(read8()) << 16
+                          | static_cast<uint16_t>(read8()) << 8 | read8(); };
+    auto print_with_bytes16 = [&](uint16_t val) {
+        bytecode_string << val << "\n";
+        bytecode_string << std::string(num_tabs, '\t') << std::hex << "0x"
+            << (int) (val >> 8) << std::dec << "\n";
+        bytecode_string << std::string(num_tabs, '\t') << std::hex << "0x"
+            << (int) (val & 0x00FF) << std::dec << "\n";
+    };
+    auto print_with_bytes32 = [&](uint32_t val) {
+        bytecode_string << val << "\n";
+        bytecode_string << std::string(num_tabs, '\t') << "0x" << std::hex
+            << (int) (val >> 24) << std::dec << "\n";
+        bytecode_string << std::string(num_tabs, '\t') << "0x" << std::hex
+            << (int) (val >> 16) << std::dec << "\n";
+        bytecode_string << std::string(num_tabs, '\t') << "0x" << std::hex
+            << (int) (val >> 8) << std::dec << "\n";
+        bytecode_string << std::string(num_tabs, '\t') << "0x" << std::hex
+            << (int) (val & 0x000000FF) << std::dec << "\n";
+    };
+    while(i < bytecode.size()) {
+        uint8_t byte = read8();
+        Opcode op = byte_to_opcode(byte);
         bytecode_string << std::string(num_tabs, '\t') << "0x" <<
-                        std::hex << std::uppercase << (int) byte << std::nouppercase << std::dec << "\n";
+                        std::hex << std::uppercase << (int) byte << std::nouppercase << std::dec << " "
+                        << opcode_to_string(op) << " ";
+        switch (op) {
+            case Opcode::Load_Literal:
+                print_with_bytes32(read32());
+                break;
+            case Opcode::Load:
+            case Opcode::Store:
+            case Opcode::List:
+                print_with_bytes16(read16());
+                break;
+            case Opcode::Dict:
+                bytecode_string << "2 * ";
+                print_with_bytes16(read16());
+                break;
+            default:
+                break;
+        }
     }
     return bytecode_string.str();
 }
@@ -85,24 +128,17 @@ void print_program(CL::Program &program) {
     };
     std::cout << "Program info: \n";
     std::cout << "\t" << program.names.size() << " names\n";
+    int i = 0;
     for (auto& name : program.names) {
-        std::cout << "\t\t " << name << "\n";
+        std::cout << "\t\t " << i++ << " | " << name << "\n";
     }
+    i = 0;
     std::cout << "\t" << program.literals.size() << " literals\n";
     for (auto& literal : program.literals) {
-        std::cout << "\t\t " << std::visit(literal_visitor{}, literal) << "\n";
-    }
-    std::cout << "\t" << program.functions.size() << " functions\n";
-
-    for (auto& function : program.functions) {
-        std::cout << "\t\t (";
-        for(auto& name : function->names) {
-            std::cout << name << ", ";
-        }
-        std::cout << ")\n";
+        std::cout << "\t\t " << i++ << " | " << std::visit(literal_visitor{}, literal) << "\n";
     }
 
-    std::cout << "\tmain section:\n" << print_bytecode(1, program.main->bytecode);
+    std::cout << "\tmain section:\n" << print_bytecode(2, program.main->bytecode);
 
 }
 
