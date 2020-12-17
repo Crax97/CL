@@ -38,7 +38,7 @@ namespace CL {
         Jump_True           = 0x22, // Jumps to read32() if true
         Jump_False          = 0x23, // Jumps to read32() if false
         Jump                = 0x24, // Jumps to read32()
-        Call                = 0x25, // k -> number of arguments, stack[0](arg_1...arg_k) where arg_i is the result of the i-eth expression after the current opcode
+        Call                = 0x25, // k -> byte with number of arguments, stack[0](arg_1...arg_k) where arg_i is the result of the i-eth expression after the current opcode
         Module              = 0x26, // k -> the next k expressions belong to the module
         Return              = 0x27, // stack_frames[-1].return_value = stack[0]; stack_frames.pop();
         Break               = 0x28, // stack_frames.pop();
@@ -76,16 +76,16 @@ namespace CL {
     struct Program {
     public:
         [[maybe_unused]] std::shared_ptr<StackFrame> main;
-        [[maybe_unused]] std::set<std::string> names;
-        [[maybe_unused]] std::set<LiteralValue> literals;
+        [[maybe_unused]] std::deque<std::string> names;
+        [[maybe_unused]] std::deque<LiteralValue> literals;
     };
 
     class VMASTEvaluator : public Evaluator,
             public StackMachine<std::shared_ptr<StackFrame>> {
     private:
     protected:
-        std::set<std::string> names;
-        std::set<LiteralValue> literals;
+        std::deque<std::string> names;
+        std::deque<LiteralValue> literals;
     public:
         VMASTEvaluator() {
             push(std::make_unique<StackFrame>());
@@ -131,7 +131,6 @@ namespace CL {
 
         StackFrame& current_frame();
         uint32_t add_literal(const LiteralValue& v);
-        uint16_t add_name(const std::string& name);
-        int get_name_index(const std::string& name);
+        uint16_t get_name_index(const std::string& name);
     };
 }

@@ -4,15 +4,12 @@
 
 #include "vm_ast_evaluator.h"
 
-class CompilationException : public CL::CLException {
+
+class [[maybe_unused]] CompilationException : public CL::CLException {
 public:
-    explicit CompilationException(const std::string &error_message) :
+    [[maybe_unused]] explicit CompilationException(const std::string &error_message) :
         CL::CLException("Compilation error: " + error_message) {}
 };
-
-void ensure(bool expression, const std::string &error_message) {
-    if(!expression) { throw CompilationException(error_message); }
-}
 
 namespace CL {
 
@@ -92,21 +89,18 @@ namespace CL {
 
     void VMASTEvaluator::visit_var_expression(const std::string &var) {
         int name_index = get_name_index(var);
-        ensure(name_index != -1, "Variable not defined: " + var);
         current_frame().add_opcode(Opcode::Load, name_index);
     }
 
     void VMASTEvaluator::visit_assign_expression(const std::string &name, const ExprPtr &value) {
-        int name_index = get_name_index(name);
-        if (name_index == -1) {
-            name_index = add_name(name);
-        }
+        uint16_t name_index = get_name_index(name);
         value->evaluate(*this);
         current_frame().add_opcode(Opcode::Store, name_index);
 
     }
 
     void VMASTEvaluator::visit_fun_call(const ExprPtr &fun, const ExprList &args) {
+        fun->evaluate(*this);
         current_frame().add_opcode(Opcode::Call, args.size());
         for (auto& arg : args) {
             arg->evaluate(*this);
@@ -115,7 +109,7 @@ namespace CL {
 
     void VMASTEvaluator::visit_fun_def(const Names &fun_names, const ExprPtr &body) {
         for (auto& name : fun_names) {
-            add_name(name);
+            get_name_index(name);
         }
         auto function = std::make_shared<FunctionFrame>(fun_names);
         push(function);
@@ -165,7 +159,7 @@ namespace CL {
     }
 
     void VMASTEvaluator::visit_for_expression(const std::string &name, const ExprPtr &iterator, const ExprPtr &body) {
-        add_name(name);
+        get_name_index(name);
         iterator->evaluate(*this);
         current_frame().add_opcode(Opcode::Get_Iter);
 
@@ -200,26 +194,27 @@ namespace CL {
         }
     }
 
-    uint32_t VMASTEvaluator::add_literal(const LiteralValue& v) {
-        literals.insert(v);
-        return std::distance(literals.begin(), literals.find(v));
-    }
-
-    uint16_t VMASTEvaluator::add_name(const std::string& name) {
-        names.insert(name);
-        return std::distance(names.begin(), names.find(name));
-    }
-
     StackFrame &VMASTEvaluator::current_frame() {
         return *peek();
     }
 
-    int VMASTEvaluator::get_name_index(const std::string &name) {
-        auto name_found = names.find(name);
+
+    uint32_t VMASTEvaluator::add_literal(const LiteralValue& v) {
+        auto literal_found = std::find(literals.begin(), literals.end(), v);
+        if (literal_found != literals.end()) {
+            return std::distance(literals.begin(), literal_found);
+        }
+        literals.push_back(v);
+        return literals.size() - 1;
+    }
+
+    uint16_t VMASTEvaluator::get_name_index(const std::string &name) {
+        auto name_found = std::find(names.begin(), names.end(), name);
         if (name_found != names.end()) {
             return std::distance(names.begin(), name_found);
         }
-        return -1;
+        names.push_back(name);
+        return names.size() - 1;
     }
 
     int StackFrame::add_opcode(Opcode op) {
@@ -229,19 +224,19 @@ namespace CL {
 
     int StackFrame::add_opcode(Opcode op, OpcodeValue16 value) {
         int position = bytecode_count();
-        bytecode.push_back(static_cast<uint8_t>(op));
-        bytecode.push_back(static_cast<uint8_t>(value >> 8));
-        bytecode.push_back(static_cast<uint8_t>(value & 0x00FF));
+        bytecode.push_back((uint8_t)(op));
+        bytecode.push_back((uint8_t)(value >> 8));
+        bytecode.push_back((uint8_t)(value & 0x00FF));
         return position;
     }
 
     int StackFrame::add_opcode32(Opcode op, OpcodeValue32 value) {
         int position = bytecode_count();
-        bytecode.push_back(static_cast<uint8_t>(op));
-        bytecode.push_back(static_cast<uint8_t>(value >> 24));
-        bytecode.push_back(static_cast<uint8_t>(value >> 16));
-        bytecode.push_back(static_cast<uint8_t>(value >> 8));
-        bytecode.push_back(static_cast<uint8_t>(value & 0x00FF));
+        bytecode.push_back((uint8_t)(op));
+        bytecode.push_back((uint8_t)(value >> 24));
+        bytecode.push_back((uint8_t)(value >> 16));
+        bytecode.push_back((uint8_t)(value >> 8));
+        bytecode.push_back((uint8_t)(value & 0x00FF));
         return position;
     }
 

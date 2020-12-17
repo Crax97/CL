@@ -1,14 +1,12 @@
 #include <algorithm>
-#include <fstream>
 #include <iostream>
 #include <istream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "vm_ast_evaluator.h"
-#include "commons.hpp"
 #include "environment.hpp"
-#include "exceptions.hpp"
 #include "lexer.hpp"
 #include "std_lib.hpp"
 #include "script.h"
@@ -18,7 +16,7 @@ void print_program(CL::Program &program);
 
 void run_script(const std::string &script_path,
                 std::shared_ptr<CL::StackedEnvironment> env) {
-	auto script = CL::Script::from_file(script_path, env);
+	auto script = CL::Script::from_file(script_path, std::move(env));
 	script.run();
 }
 
@@ -67,9 +65,14 @@ std::string print_bytecode(int num_tabs, std::vector<uint8_t> &bytecode) {
     std::stringstream bytecode_string;
     int i = 0;
     auto read8 = [&]() { return bytecode[i++]; };
-    auto read16 = [&]() { return static_cast<uint16_t>(read8()) << 8 | read8(); };
-    auto read32 = [&]() { return static_cast<uint16_t>(read8()) << 24 | static_cast<uint16_t>(read8()) << 16
-                          | static_cast<uint16_t>(read8()) << 8 | read8(); };
+    auto read16 = [&]() { return (uint16_t)(read8()) << 8 | read8(); };
+    auto read32 = [&]() { return (uint16_t)(read8()) << 24 | (uint16_t)(read8()) << 16
+                          | (uint16_t)(read8()) << 8 | read8(); };
+    auto print_with_bytes8 = [&](uint8_t val) {
+        bytecode_string << val << "\n";
+        bytecode_string << std::string(num_tabs, '\t') << std::hex << "0x"
+                        << (int)val << std::dec << "\n";
+    };
     auto print_with_bytes16 = [&](uint16_t val) {
         bytecode_string << val << "\n";
         bytecode_string << std::string(num_tabs, '\t') << std::hex << "0x"
@@ -107,7 +110,18 @@ std::string print_bytecode(int num_tabs, std::vector<uint8_t> &bytecode) {
                 bytecode_string << "2 * ";
                 print_with_bytes16(read16());
                 break;
+            case Opcode::Call: {
+                    bytecode_string << " with arg count: ";
+                    uint8_t arg_count = read8();
+                    if (arg_count == UINT8_MAX) {
+                        bytecode_string << "Variadic";
+                    } else {
+                        print_with_bytes8(arg_count);
+                    }
+                }
+                break;
             default:
+                bytecode_string << "\n";
                 break;
         }
     }
@@ -117,7 +131,7 @@ void print_program(CL::Program &program) {
     struct literal_visitor {
         std::string operator()(const CL::Number n) { return std::to_string(n); }
         std::string operator()(const CL::String& s) { return s; }
-        std::string operator()(const std::shared_ptr<CL::FunctionFrame> frame) {
+        std::string operator()(const std::shared_ptr<CL::FunctionFrame>& frame) {
             std::stringstream name_stream;
             name_stream << "Function (";
             for (auto& name : frame->names) {
