@@ -1,0 +1,73 @@
+//
+// Created by gsoli on 17/12/2020.
+//
+
+#pragma once
+
+#include "commons.hpp"
+#include "value.hpp"
+#include "stack_based_evaluator.hpp"
+#include "vm_ast_evaluator.h"
+
+namespace CL {
+    struct StackFrame {
+        RuntimeEnvPtr environment;
+        std::vector<uint8_t> code;
+        int program_counter = 0;
+        std::optional<RuntimeValue> return_value;
+    };
+
+    class BytecodeRunner
+            :   public StackMachine<RuntimeValue> {
+    private:
+        class BytecodeFunction
+                : public Callable {
+        private:
+            std::shared_ptr<BytecodeRunner> runner;
+            std::vector<uint8_t> bytecode;
+            std::vector<std::string> argument_names;
+            bool is_variadic;
+
+        public:
+            explicit BytecodeFunction(std::shared_ptr<BytecodeRunner> in_runner,
+                                      std::vector<uint8_t> in_bytecode,
+                                      std::vector<std::string> in_argument_names,
+                                      bool in_is_variadic = false);
+            std::optional<RuntimeValue> call(const Args &args) override;
+            uint8_t arity() override { return argument_names.size(); }
+            [[nodiscard]]
+            std::string to_string() const noexcept override {
+                return "Function";
+            }
+        };
+        std::stack<StackFrame> execution_frames;
+        std::optional<RuntimeValue> program_result;
+
+        std::vector<RuntimeValue> constants;
+        std::vector<std::string> names;
+        static Opcode decode(uint8_t code);
+        void execute(Opcode op);
+        void loop();
+        uint8_t fetch8();
+        uint16_t fetch16();
+        uint32_t fetch32();
+
+    protected:
+        bool has_frames() const {
+            return !execution_frames.empty();
+        }
+        void push_frame(StackFrame frame);
+        StackFrame pop_frame();
+        StackFrame& current_stack_frame();
+
+    public:
+        explicit  BytecodeRunner(std::vector<uint8_t> main_chunk,
+                                 std::vector<std::string> in_names,
+                                 std::vector<RuntimeValue> in_constants,
+                                 RuntimeEnvPtr env);
+
+        std::optional<RuntimeValue> run();
+        void make_list();
+        void make_dict();
+    };
+}
