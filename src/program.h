@@ -52,7 +52,8 @@ namespace CL {
         std::deque<std::string> names;
         std::deque<LiteralValue> literals;
 
+        BytecodeRunnerPtr create_runner(RuntimeEnvPtr runtime_env);
         void write_to_file(const std::string& file_path);
-
+        CallablePtr make_function_from_function_frame(std::shared_ptr<FunctionFrame> &frame, BytecodeRunnerPtr runner);
     };
 } // NAMESPACE CL

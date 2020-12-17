@@ -4,6 +4,9 @@
 
 #include "program.h"
 #include "vm_ast_evaluator.h"
+#include "bytecode_runner.hpp"
+#include "environment.hpp"
+
 #include <fstream>
 #include <ostream>
 #include <filesystem>
@@ -109,5 +112,46 @@ void CompiledProgram::write_to_file(const std::string &file_path) {
         for (uint8_t byte : main->bytecode) {
             write(output_file_stream, byte);
         }
+    }
+
+    BytecodeRunnerPtr CompiledProgram::create_runner(RuntimeEnvPtr runtime_env) {
+        BytecodeRunnerPtr runner = std::make_shared<BytecodeRunner>(
+                main->bytecode,
+                names,
+                std::make_shared<StackedEnvironment>(runtime_env)
+        );
+
+        std::vector<RuntimeValue> constants;
+        constants.reserve(literals.size());
+        for (auto& literal : literals) {
+            LiteralType type = std::visit(LiteralTypeVisitor{}, literal);
+            switch (type) {
+                case LiteralType::Number:
+                    constants.emplace_back(std::get<Number>(literal));
+                    break;
+                case LiteralType::String:
+                    constants.emplace_back(std::get<String>(literal));
+                    break;
+                case LiteralType::Function:
+                    constants.emplace_back(make_function_from_function_frame(std::get<std::shared_ptr<FunctionFrame>>(literal), runner));
+                    break;
+            }
+        }
+        runner->set_constants(constants);
+        return runner;
+    }
+
+    CallablePtr CompiledProgram::make_function_from_function_frame(std::shared_ptr<FunctionFrame> &frame, BytecodeRunnerPtr runner) {
+        std::vector<std::string> argument_names;
+        argument_names.reserve(frame->names.size());
+        for (uint16_t index : frame->names) {
+            argument_names.emplace_back(names[index]);
+        }
+        return std::dynamic_pointer_cast<Callable>(std::make_shared<BytecodeFunction>(
+                    runner,
+                    frame->bytecode,
+                    argument_names,
+                    argument_names.size() == 255
+                ));
     }
 }

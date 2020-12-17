@@ -75,11 +75,11 @@ namespace CL {
     }
 
     void VMASTEvaluator::visit_fun_call(const ExprPtr &fun, const ExprList &args) {
-        fun->evaluate(*this);
-        current_frame().add_opcode(Opcode::Call, args.size());
         for (auto& arg : args) {
             arg->evaluate(*this);
         }
+        fun->evaluate(*this);
+        current_frame().add_opcode8(Opcode::Call, args.size());
     }
 
     void VMASTEvaluator::visit_fun_def(const Names &fun_names, const ExprPtr &body) {
@@ -201,6 +201,13 @@ namespace CL {
     int CompilationStackFrame::add_opcode(Opcode op) {
         bytecode.push_back(static_cast<uint8_t>(op));
         return bytecode_count() - 1;
+    }
+
+    int CompilationStackFrame::add_opcode8(Opcode op, uint8_t value) {
+        int position = bytecode_count();
+        bytecode.push_back((uint8_t)(op));
+        bytecode.push_back((uint8_t)(value));
+        return position;
     }
 
     int CompilationStackFrame::add_opcode(Opcode op, OpcodeValue16 value) {

@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "vm_ast_evaluator.h"
+#include "bytecode_runner.hpp"
 #include "environment.hpp"
 #include "lexer.hpp"
 #include "std_lib.hpp"
@@ -168,7 +169,11 @@ void run_from_cli(const CL::RuntimeEnvPtr &env) {
                 expr->evaluate(compiler);
             }
             CL::CompiledProgram program = compiler.get_program();
-            print_program(program);
+            CL::BytecodeRunnerPtr runner = program.create_runner(env);
+            auto result = runner->run();
+            if (result.has_value()) {
+                std::cout << result->to_string();
+            }
 
         } catch (CL::CLException &ex) {
 			std::cerr << "Error: " << ex.get_message() << "\n";

@@ -28,6 +28,8 @@ class Indexable;
 class StackedEnvironment;
 class CompilationStackFrame;
 class FunctionFrame;
+class BytecodeRunner;
+class BytecodeFunction;
 
 using RuntimeEnvPtr = std::shared_ptr<StackedEnvironment>;
 using IndexablePtr = std::shared_ptr<Indexable>;
@@ -39,6 +41,8 @@ using Names = std::vector<std::string>;
 using ExprPtr = std::shared_ptr<Expression>;
 using ExprList = std::vector<ExprPtr>;
 using CallablePtr = std::shared_ptr<Callable>;
+using BytecodeFunctionPtr = std::shared_ptr<BytecodeFunction>;
+using BytecodeRunnerPtr = std::shared_ptr<BytecodeRunner>;
 using FunctionCallback = std::function<std::optional<RuntimeValue>(const Args &args)>;
 using VoidFunctionCallback = std::function<void(const Args &args)>;
 using LiteralValue = std::variant<Number, String, std::shared_ptr<FunctionFrame>>;

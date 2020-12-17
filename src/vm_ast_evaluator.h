@@ -26,6 +26,8 @@ namespace CL {
         [[maybe_unused]] int set16(int position, OpcodeValue16 value);
         int set32(int position, OpcodeValue32 value);
         [[nodiscard]] int bytecode_count() const { return bytecode.size(); }
+
+        int add_opcode8(Opcode op, uint8_t value);
     };
 
     struct FunctionFrame : public CompilationStackFrame {

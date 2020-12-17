@@ -16,35 +16,35 @@ namespace CL {
         int program_counter = 0;
         std::optional<RuntimeValue> return_value;
     };
+    class BytecodeFunction
+            : public Callable {
+    private:
+        std::shared_ptr<BytecodeRunner> runner;
+        std::vector<uint8_t> bytecode;
+        std::vector<std::string> argument_names;
+        bool is_variadic;
 
+    public:
+        explicit BytecodeFunction(std::shared_ptr<BytecodeRunner> in_runner,
+                                  std::vector<uint8_t> in_bytecode,
+                                  std::vector<std::string> in_argument_names,
+                                  bool in_is_variadic = false);
+        std::optional<RuntimeValue> call(const Args &args) override;
+        uint8_t arity() override { return argument_names.size(); }
+        [[nodiscard]]
+        std::string to_string() const noexcept override {
+            return "Function";
+        }
+    };
     class BytecodeRunner
             :   public StackMachine<RuntimeValue> {
+        friend class BytecodeFunction;
     private:
-        class BytecodeFunction
-                : public Callable {
-        private:
-            std::shared_ptr<BytecodeRunner> runner;
-            std::vector<uint8_t> bytecode;
-            std::vector<std::string> argument_names;
-            bool is_variadic;
-
-        public:
-            explicit BytecodeFunction(std::shared_ptr<BytecodeRunner> in_runner,
-                                      std::vector<uint8_t> in_bytecode,
-                                      std::vector<std::string> in_argument_names,
-                                      bool in_is_variadic = false);
-            std::optional<RuntimeValue> call(const Args &args) override;
-            uint8_t arity() override { return argument_names.size(); }
-            [[nodiscard]]
-            std::string to_string() const noexcept override {
-                return "Function";
-            }
-        };
         std::stack<StackFrame> execution_frames;
         std::optional<RuntimeValue> program_result;
 
         std::vector<RuntimeValue> constants;
-        std::vector<std::string> names;
+        std::deque<std::string> names;
         static Opcode decode(uint8_t code);
         void execute(Opcode op);
         void loop();
@@ -52,8 +52,11 @@ namespace CL {
         uint16_t fetch16();
         uint32_t fetch32();
 
+        void make_list();
+        void make_dict();
+
     protected:
-        bool has_frames() const {
+        [[nodiscard]] bool has_frames() const {
             return !execution_frames.empty();
         }
         void push_frame(StackFrame frame);
@@ -62,12 +65,12 @@ namespace CL {
 
     public:
         explicit  BytecodeRunner(std::vector<uint8_t> main_chunk,
-                                 std::vector<std::string> in_names,
-                                 std::vector<RuntimeValue> in_constants,
+                                 std::deque<std::string> in_names,
                                  RuntimeEnvPtr env);
 
         std::optional<RuntimeValue> run();
-        void make_list();
-        void make_dict();
+        void set_constants(std::vector<RuntimeValue> in_constants) {
+            constants = std::move(in_constants);
+        }
     };
 }

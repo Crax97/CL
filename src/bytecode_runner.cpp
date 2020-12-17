@@ -15,8 +15,10 @@ namespace CL {
 
             case Opcode::Nop:
                 break;
-            case Opcode::Load_Literal:
-                push(constants[fetch32()]);
+            case Opcode::Load_Literal: {
+                int constant_index = fetch32();
+                push(constants[constant_index]);
+            }
                 break;
             case Opcode::Load: {
                 uint16_t name_index = fetch16();
@@ -122,11 +124,11 @@ namespace CL {
                 current_stack_frame().program_counter = fetch32();
                 break;
             case Opcode::Call: {
-                uint8_t expected_arity = fetch8();
+                uint8_t call_arity = fetch8();
                 auto callable = pop();
                 std::vector<RuntimeValue> argument_values;
-                argument_values.reserve(expected_arity);
-                for (int i = 0; i < expected_arity; i++) {
+                argument_values.reserve(call_arity);
+                for (int i = 0; i < call_arity; i++) {
                     argument_values.push_back(pop());
                 }
                 callable.as<CallablePtr>()->call(argument_values);
@@ -162,6 +164,7 @@ namespace CL {
                 Opcode op = decode(instruction);
                 execute(op);
             }
+            pop_frame();
         }
     }
 
@@ -197,9 +200,9 @@ namespace CL {
         return program_result;
     }
 
-    BytecodeRunner::BytecodeRunner(std::vector<uint8_t> main_chunk, std::vector<std::string> in_names,
-                                   std::vector<RuntimeValue> in_constants, RuntimeEnvPtr env)
-                                   : names(std::move(in_names)), constants(std::move(in_constants)) {
+    BytecodeRunner::BytecodeRunner(std::vector<uint8_t> main_chunk, std::deque<std::string> in_names,
+                                   RuntimeEnvPtr env)
+                                   : names(std::move(in_names)) {
         push_frame(StackFrame {
                 std::move(env),
                 std::move(main_chunk),
@@ -226,7 +229,7 @@ namespace CL {
         push(RuntimeValue(dict));
     }
 
-    std::optional<RuntimeValue> BytecodeRunner::BytecodeFunction::call(const Args &args) {
+    std::optional<RuntimeValue> BytecodeFunction::call(const Args &args) {
         runner->push_frame(StackFrame {
             std::make_shared<StackedEnvironment>(runner->current_stack_frame().environment),
             bytecode
@@ -234,7 +237,7 @@ namespace CL {
         return std::optional<RuntimeValue>();
     }
 
-    BytecodeRunner::BytecodeFunction::BytecodeFunction(std::shared_ptr<BytecodeRunner> in_runner,
+    BytecodeFunction::BytecodeFunction(std::shared_ptr<BytecodeRunner> in_runner,
                                                        std::vector<uint8_t> in_bytecode,
                                                        std::vector<std::string> in_argument_names,
                                                        bool in_is_variadic)
