@@ -63,6 +63,9 @@ char Lexer::get_next() {
 		m_current_column = 0;
 		update_line_view();
 	}
+	if (c == -1) {
+	    m_done_lexing = true;
+	}
 	return c;
 }
 
