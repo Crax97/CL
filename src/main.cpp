@@ -11,8 +11,9 @@
 #include "std_lib.hpp"
 #include "script.h"
 #include "parser.hpp"
+#include "program.h"
 
-void print_program(CL::Program &program);
+void print_program(CL::CompiledProgram &program);
 
 void run_script(const std::string &script_path,
                 std::shared_ptr<CL::StackedEnvironment> env) {
@@ -52,7 +53,7 @@ void run_from_cli(const CL::RuntimeEnvPtr &env) {
             for(auto& expr : expressions) {
                 expr->evaluate(compiler);
             }
-            CL::Program program = compiler.get_program();
+            CL::CompiledProgram program = compiler.get_program();
             print_program(program);
 
         } catch (CL::CLException &ex) {
@@ -127,20 +128,25 @@ std::string print_bytecode(int num_tabs, std::vector<uint8_t> &bytecode) {
     }
     return bytecode_string.str();
 }
-void print_program(CL::Program &program) {
+void print_program(CL::CompiledProgram &program) {
     struct literal_visitor {
+    private:
+        CL::CompiledProgram& program_reference;
+    public:
+        explicit literal_visitor(CL::CompiledProgram& in_program_reference)
+            : program_reference(in_program_reference) {}
         std::string operator()(const CL::Number n) { return std::to_string(n); }
         std::string operator()(const CL::String& s) { return s; }
         std::string operator()(const std::shared_ptr<CL::FunctionFrame>& frame) {
             std::stringstream name_stream;
             name_stream << "Function (";
-            for (auto& name : frame->names) {
-                name_stream << name << ",";
+            for (auto& name_index : frame->names) {
+                name_stream << program_reference.names[name_index] << ",";
             }
             name_stream << ")\n";
             return name_stream.str() + print_bytecode(3, frame->bytecode); }
     };
-    std::cout << "Program info: \n";
+    std::cout << "CompiledProgram info: \n";
     std::cout << "\t" << program.names.size() << " names\n";
     int i = 0;
     for (auto& name : program.names) {
@@ -149,7 +155,7 @@ void print_program(CL::Program &program) {
     i = 0;
     std::cout << "\t" << program.literals.size() << " literals\n";
     for (auto& literal : program.literals) {
-        std::cout << "\t\t " << i++ << " | " << std::visit(literal_visitor{}, literal) << "\n";
+        std::cout << "\t\t " << i++ << " | " << std::visit(literal_visitor{program}, literal) << "\n";
     }
 
     std::cout << "\tmain section:\n" << print_bytecode(2, program.main->bytecode);

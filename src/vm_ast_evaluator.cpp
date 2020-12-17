@@ -108,10 +108,12 @@ namespace CL {
     }
 
     void VMASTEvaluator::visit_fun_def(const Names &fun_names, const ExprPtr &body) {
+        std::vector<uint16_t> indices;
+        indices.reserve(fun_names.size());
         for (auto& name : fun_names) {
-            get_name_index(name);
+            indices.push_back(get_name_index(name));
         }
-        auto function = std::make_shared<FunctionFrame>(fun_names);
+        auto function = std::make_shared<FunctionFrame>(indices);
         push(function);
         body->evaluate(*this);
         pop();

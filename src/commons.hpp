@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <variant>
 
 #define TODO()                                                                 \
     {                                                                          \
@@ -25,6 +26,8 @@ class Callable;
 class Expression;
 class Indexable;
 class StackedEnvironment;
+class StackFrame;
+class FunctionFrame;
 
 using RuntimeEnvPtr = std::shared_ptr<StackedEnvironment>;
 using IndexablePtr = std::shared_ptr<Indexable>;
@@ -38,6 +41,7 @@ using ExprList = std::vector<ExprPtr>;
 using CallablePtr = std::shared_ptr<Callable>;
 using FunctionCallback = std::function<std::optional<RuntimeValue>(const Args &args)>;
 using VoidFunctionCallback = std::function<void(const Args &args)>;
+using LiteralValue = std::variant<Number, String, std::shared_ptr<FunctionFrame>>;
 
 enum class BinaryOp {
 	Multiplication,

@@ -8,6 +8,8 @@
 #include <set>
 #include "nodes.hpp"
 #include "stack_based_evaluator.hpp"
+#include "program.h"
+#include "commons.hpp"
 
 namespace CL {
     enum class Opcode : uint8_t {
@@ -66,18 +68,9 @@ namespace CL {
     };
 
     struct FunctionFrame : public StackFrame {
-        [[maybe_unused]] std::vector<std::string> names;
-        explicit FunctionFrame(std::vector<std::string> in_names) :
+        [[maybe_unused]] std::vector<uint16_t> names;
+        explicit FunctionFrame(std::vector<uint16_t> in_names) :
             names(std::move(in_names)){ }
-    };
-
-    using LiteralValue = std::variant<Number, String, std::shared_ptr<FunctionFrame>>;
-
-    struct Program {
-    public:
-        [[maybe_unused]] std::shared_ptr<StackFrame> main;
-        [[maybe_unused]] std::deque<std::string> names;
-        [[maybe_unused]] std::deque<LiteralValue> literals;
     };
 
     class VMASTEvaluator : public Evaluator,
@@ -127,7 +120,7 @@ namespace CL {
                                           const ExprPtr &what) override;
         void visit_module_definition(const ExprList &expressions) override;
 
-        [[maybe_unused]] Program get_program() { return Program {peek(), names, literals}; }
+        [[maybe_unused]] CompiledProgram get_program() { return CompiledProgram {peek(), names, literals}; }
 
         StackFrame& current_frame();
         uint32_t add_literal(const LiteralValue& v);
