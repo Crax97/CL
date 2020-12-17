@@ -36,7 +36,7 @@ void write_name(std::ostream& stream, String s) {
 void write_number(std::ostream& stream, Number n) {
     char type_byte = static_cast<char>(LiteralType::Number);
     stream.write(&type_byte, 1);
-    stream.write(reinterpret_cast<char*>(&n), 8);
+    write(stream, n);
 }
 void write_string(std::ostream& stream, String s) {
     char type_byte = static_cast<char>(LiteralType::String);
