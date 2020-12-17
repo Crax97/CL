@@ -48,7 +48,7 @@ namespace CL {
         void write_literals(std::basic_ofstream<char> &output_file_stream);
         void write_bytecode(std::ostream &output_file_stream);
     public:
-        std::shared_ptr<StackFrame> main;
+        std::shared_ptr<CompilationStackFrame> main;
         std::deque<std::string> names;
         std::deque<LiteralValue> literals;
 

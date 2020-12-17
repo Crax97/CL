@@ -18,7 +18,7 @@ set(SOURCES
         src/helpers.h
         src/dictionary.cpp src/dictionary.h
         src/vm_ast_evaluator.cpp src/vm_ast_evaluator.h
-        src/program.cpp src/program.h)
+        src/program.cpp src/program.h src/bytecode_runner.cpp src/bytecode_runner.hpp)
 
 
 set(CMAKE_CXX_STANDARD 17)

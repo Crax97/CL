@@ -1,4 +1,5 @@
 #include "commons.hpp"
+#include "exceptions.hpp"
 
 namespace CL {
 std::string binary_op_to_string(BinaryOp op) noexcept {
@@ -26,6 +27,32 @@ std::string unary_op_to_string(UnaryOp op) noexcept {
 		case UnaryOp::Negation: return "-";
 	}
 	return "Unrecognized";
+}
+
+Opcode opcode_from_binary(BinaryOp op) {
+    switch(op) {
+        case BinaryOp::Addition: return Opcode::Add;
+        case BinaryOp::Subtraction: return Opcode::Sub;
+        case BinaryOp::Multiplication: return Opcode::Mul;
+        case BinaryOp::Division: return Opcode::Div;
+        case BinaryOp::Modulo: return Opcode::Mod;
+        case BinaryOp::Greater: return Opcode::Greater;
+        case BinaryOp::Greater_Equals: return Opcode::Greater_Eq;
+        case BinaryOp::Less: return Opcode::Less;
+        case BinaryOp::Less_Equals: return Opcode::Less_Eq;
+        case BinaryOp::Equals: return Opcode::Eq;
+        case BinaryOp::Not_Equals: return Opcode::Neq;
+        case BinaryOp::Exponentiation: return Opcode::Pow;
+        default:
+            throw CLException("Or/And shouldn't be here");
+    }
+}
+
+Opcode opcode_from_unary(UnaryOp op) {
+    switch(op) {
+        case UnaryOp::Negation: return Opcode::Neg;
+        case UnaryOp::Identity: return Opcode::Nop;
+    }
 }
 
 }

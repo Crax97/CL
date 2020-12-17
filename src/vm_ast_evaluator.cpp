@@ -3,6 +3,7 @@
 //
 
 #include "vm_ast_evaluator.h"
+#include "commons.hpp"
 
 
 class [[maybe_unused]] CompilationException : public CL::CLException {
@@ -12,32 +13,6 @@ public:
 };
 
 namespace CL {
-
-    Opcode opcode_from_binary(BinaryOp op) {
-        switch(op) {
-            case BinaryOp::Addition: return Opcode::Add;
-            case BinaryOp::Subtraction: return Opcode::Sub;
-            case BinaryOp::Multiplication: return Opcode::Mul;
-            case BinaryOp::Division: return Opcode::Div;
-            case BinaryOp::Modulo: return Opcode::Mod;
-            case BinaryOp::Greater: return Opcode::Greater;
-            case BinaryOp::Greater_Equals: return Opcode::Greater_Eq;
-            case BinaryOp::Less: return Opcode::Less;
-            case BinaryOp::Less_Equals: return Opcode::Less_Eq;
-            case BinaryOp::Equals: return Opcode::Eq;
-            case BinaryOp::Not_Equals: return Opcode::Neq;
-            case BinaryOp::Exponentiation: return Opcode::Pow;
-            default:
-                throw CLException("Or/And shouldn't be here");
-        }
-    }
-
-    Opcode opcode_from_unary(UnaryOp op) {
-        switch(op) {
-            case UnaryOp::Negation: return Opcode::Neg;
-            case UnaryOp::Identity: return Opcode::Nop;
-        }
-    }
 
     void VMASTEvaluator::visit_number_expression(CL::Number n) {
         uint32_t index = add_literal(n);
@@ -131,8 +106,12 @@ namespace CL {
     }
 
     void VMASTEvaluator::visit_return_expression(const ExprPtr &expr) {
-        expr->evaluate(*this);
-        current_frame().add_opcode(Opcode::Return);
+        if (expr != nullptr) {
+            expr->evaluate(*this);
+            current_frame().add_opcode(Opcode::Return);
+        } else {
+            current_frame().add_opcode(Opcode::Break);
+        }
     }
 
     void VMASTEvaluator::visit_break_expression() {
@@ -196,7 +175,7 @@ namespace CL {
         }
     }
 
-    StackFrame &VMASTEvaluator::current_frame() {
+    CompilationStackFrame &VMASTEvaluator::current_frame() {
         return *peek();
     }
 
@@ -219,12 +198,12 @@ namespace CL {
         return names.size() - 1;
     }
 
-    int StackFrame::add_opcode(Opcode op) {
+    int CompilationStackFrame::add_opcode(Opcode op) {
         bytecode.push_back(static_cast<uint8_t>(op));
         return bytecode_count() - 1;
     }
 
-    int StackFrame::add_opcode(Opcode op, OpcodeValue16 value) {
+    int CompilationStackFrame::add_opcode(Opcode op, OpcodeValue16 value) {
         int position = bytecode_count();
         bytecode.push_back((uint8_t)(op));
         bytecode.push_back((uint8_t)(value >> 8));
@@ -232,7 +211,7 @@ namespace CL {
         return position;
     }
 
-    int StackFrame::add_opcode32(Opcode op, OpcodeValue32 value) {
+    int CompilationStackFrame::add_opcode32(Opcode op, OpcodeValue32 value) {
         int position = bytecode_count();
         bytecode.push_back((uint8_t)(op));
         bytecode.push_back((uint8_t)(value >> 24));
@@ -242,7 +221,7 @@ namespace CL {
         return position;
     }
 
-    [[maybe_unused]] int StackFrame::set16(int position, OpcodeValue16 value) {
+    [[maybe_unused]] int CompilationStackFrame::set16(int position, OpcodeValue16 value) {
         uint8_t higher = value >> 8;
         uint8_t lower = value & 0xFF;
         bytecode[position] = higher;
@@ -250,7 +229,7 @@ namespace CL {
         return position;
     }
 
-    int StackFrame::set32(int position, OpcodeValue32 value) {
+    int CompilationStackFrame::set32(int position, OpcodeValue32 value) {
         uint8_t byte1 = value >> 24;
         uint8_t byte2 = value >> 16;
         uint8_t byte3 = value >> 8;
