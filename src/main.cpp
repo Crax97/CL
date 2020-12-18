@@ -171,9 +171,10 @@ void run_from_cli(const CL::RuntimeEnvPtr &env) {
             }
             CL::CompiledProgram program = compiler.get_program();
             CL::BytecodeRunnerPtr runner = program.create_runner(env);
-            auto result = runner->run();
-            if (result.has_value()) {
-                std::cout << result->to_string();
+            runner->run();
+            if (runner->stack_has_value()) {
+                auto value = runner->get_last_stack_value();
+                std::cout << ">> " << value.to_string() << "\n";
             }
 
         } catch (CL::CLException &ex) {

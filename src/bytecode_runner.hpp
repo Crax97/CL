@@ -85,6 +85,8 @@ namespace CL {
             constants = std::move(in_constants);
         }
 
+        [[nodiscard]] bool stack_has_value() const { return !m_stack.empty(); }
+        [[nodiscard]] RuntimeValue get_last_stack_value() { return pop(); }
         void call_function(const BytecodeFunctionPtr &function, std::vector<RuntimeValue> arguments);
     };
 }
