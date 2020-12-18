@@ -62,38 +62,71 @@ namespace CL {
             case Opcode::Add:
                 push(pop() + pop());
                 break;
-            case Opcode::Sub:
-                push(pop() - pop());
+            case Opcode::Sub: {
+                auto left = pop();
+                auto right = pop();
+                push(left - right);
+            }
                 break;
-            case Opcode::Mul:
-                push(pop() * pop());
+            case Opcode::Mul: {
+                auto left = pop();
+                auto right = pop();
+                push(left * right);
+            }
                 break;
-            case Opcode::Div:
-                push(pop() / pop());
+            case Opcode::Div: {
+                auto left = pop();
+                auto right = pop();
+                push(left / right);
+            }
                 break;
-            case Opcode::Mod:
-                push(pop().modulo(pop()));
+            case Opcode::Mod: {
+                auto left = pop();
+                auto right = pop();
+                push(left.modulo(right));
+            }
                 break;
-            case Opcode::Pow:
-                push(pop().to_power_of(pop()));
+            case Opcode::Pow: {
+                auto left = pop();
+                auto right = pop();
+                push(left.to_power_of(right));
+            }
                 break;
-            case Opcode::Less:
-                push(pop() < pop());
+            case Opcode::Less: {
+                auto left = pop();
+                auto right = pop();
+                push(left < right);
+            }
                 break;
-            case Opcode::Less_Eq:
-                push(pop() <= pop());
+            case Opcode::Less_Eq: {
+                auto left = pop();
+                auto right = pop();
+                push(left <= right);
+            }
                 break;
-            case Opcode::Greater:
-                push(pop() > pop());
+            case Opcode::Greater: {
+                auto left = pop();
+                auto right = pop();
+                push(left > right);
+            }
                 break;
-            case Opcode::Greater_Eq:
-                push(pop() >= pop());
+            case Opcode::Greater_Eq: {
+                auto left = pop();
+                auto right = pop();
+                push(left >= right);
+            }
                 break;
-            case Opcode::Eq:
-                push(pop() == pop());
+            case Opcode::Eq: {
+                auto left = pop();
+                auto right = pop();
+                push(left == right);
+            }
                 break;
-            case Opcode::Neq:
-                push(pop() != pop());
+            case Opcode::Neq: {
+                auto left = pop();
+                auto right = pop();
+                push(left != right);
+            }
                 break;
             case Opcode::True:
                 push(pop().is_truthy());
@@ -171,7 +204,7 @@ namespace CL {
         auto call_env = std::make_shared<StackedEnvironment>(current_stack_frame().environment);
         for (int i = 0; i < function->argument_names.size(); i ++) {
             auto argument_name = function->argument_names[i];
-            call_env->bind(argument_name, arguments[i]);
+            call_env->bind(argument_name, arguments[function->argument_names.size() - i - 1]);
         }
         push_frame(StackFrame {
                 call_env,
