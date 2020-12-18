@@ -218,6 +218,7 @@ void inject_math_functions(const RuntimeEnvPtr &env) {
 	dict_object->set_named("cos", CL::make_function(cos));
 	dict_object->set_named("tan", CL::make_function(tan));
 	dict_object->set_named("atan2", CL::make_function(atan2));
+	dict_object->set_named("pow", CL::make_function(pow));
 	dict_object->set_named("exp", CL::make_function(exp));
 	dict_object->set_named("log10", CL::make_function(log10));
 	dict_object->set_named("log2", CL::make_function(log2));
