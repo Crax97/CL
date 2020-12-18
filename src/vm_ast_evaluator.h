@@ -6,6 +6,7 @@
 #pragma once
 
 #include <set>
+#include <utility>
 #include "nodes.hpp"
 #include "stack_based_evaluator.hpp"
 #include "program.h"
@@ -15,10 +16,10 @@ namespace CL {
 
     using OpcodeValue16 = uint16_t;
     using OpcodeValue32 = uint32_t;
-    struct CompilationStackFrame {
-        std::vector<uint8_t> bytecode;
-        std::set<std::string> names;
 
+    struct CompilationStackFrame {
+        SymbolTablePtr symbol_table;
+        std::vector<uint8_t> bytecode;
         int add_opcode(Opcode op);
         int add_opcode(Opcode op, OpcodeValue16 value);
         int add_opcode32(Opcode op, OpcodeValue32 value);
@@ -40,10 +41,10 @@ namespace CL {
             public StackMachine<std::shared_ptr<CompilationStackFrame>> {
     private:
     protected:
-        std::deque<std::string> names;
-        std::deque<LiteralValue> literals;
+        SymbolTablePtr symbol_table;
     public:
-        VMASTEvaluator() {
+        explicit VMASTEvaluator(SymbolTablePtr in_symbol_table)
+            : symbol_table(std::move(in_symbol_table)){
             push(std::make_unique<CompilationStackFrame>());
         }
         void visit_number_expression(Number n) override;
@@ -83,7 +84,7 @@ namespace CL {
                                           const ExprPtr &what) override;
         void visit_module_definition(const ExprList &expressions) override;
 
-        [[maybe_unused]] CompiledProgram get_program() { return CompiledProgram {peek(), names, literals}; }
+        [[maybe_unused]] CompiledProgram get_program() { return CompiledProgram {peek(), symbol_table}; }
 
         CompilationStackFrame& current_frame();
         uint32_t add_literal(const LiteralValue& v);

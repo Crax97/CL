@@ -66,8 +66,8 @@ void CompiledProgram::write_to_file(const std::string &file_path) {
 
     ProgramHeader header;
     header.timestamp = std::chrono::system_clock::now().time_since_epoch() / std::chrono::seconds(1);
-    header.name_count = names.size();
-    header.literals_count = literals.size();
+    header.name_count = symbol_table->names.size();
+    header.literals_count = symbol_table->literals.size();
 
     write_header(output_file_stream, header);
     write_names(output_file_stream);
@@ -76,7 +76,7 @@ void CompiledProgram::write_to_file(const std::string &file_path) {
 }
 
     void CompiledProgram::write_literals(std::basic_ofstream<char> &output_file_stream) {
-        for (auto& literal : literals) {
+        for (auto& literal : symbol_table->literals) {
             LiteralType literal_type = std::visit(LiteralTypeVisitor{}, literal);
             switch(literal_type) {
                 case LiteralType::Number:
@@ -93,7 +93,7 @@ void CompiledProgram::write_to_file(const std::string &file_path) {
     }
 
     void CompiledProgram::write_names(std::basic_ofstream<char> &output_file_stream) const {
-        for (auto& name : names) {
+        for (auto& name : symbol_table->names) {
             write_name(output_file_stream, name);
         }
     }
@@ -117,13 +117,13 @@ void CompiledProgram::write_to_file(const std::string &file_path) {
     BytecodeRunnerPtr CompiledProgram::create_runner(RuntimeEnvPtr runtime_env) {
         BytecodeRunnerPtr runner = std::make_shared<BytecodeRunner>(
                 main->bytecode,
-                names,
+                symbol_table,
                 runtime_env
         );
 
         std::vector<RuntimeValue> constants;
-        constants.reserve(literals.size());
-        for (auto& literal : literals) {
+        constants.reserve(symbol_table->literals.size());
+        for (auto& literal : symbol_table->literals) {
             LiteralType type = std::visit(LiteralTypeVisitor{}, literal);
             switch (type) {
                 case LiteralType::Number:
@@ -145,7 +145,7 @@ void CompiledProgram::write_to_file(const std::string &file_path) {
         std::vector<std::string> argument_names;
         argument_names.reserve(frame->names.size());
         for (uint16_t index : frame->names) {
-            argument_names.emplace_back(names[index]);
+            argument_names.emplace_back(symbol_table->names[index]);
         }
         return std::dynamic_pointer_cast<Callable>(std::make_shared<BytecodeFunction>(
                     runner,

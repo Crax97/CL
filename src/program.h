@@ -34,11 +34,11 @@ namespace CL {
     struct ProgramHeader {
         // This must be "BADCODE\0"
         char magic[8] ="BADCODE";
-        uint64_t timestamp;
+        uint64_t timestamp {};
         // Defines how many names the program contains
-        uint16_t name_count;
+        uint16_t name_count {};
         // Defines how many literal values are present in the program
-        uint32_t literals_count;
+        uint32_t literals_count {};
     };
 
     class CompiledProgram {
@@ -49,8 +49,7 @@ namespace CL {
         void write_bytecode(std::ostream &output_file_stream);
     public:
         std::shared_ptr<CompilationStackFrame> main;
-        std::deque<std::string> names;
-        std::deque<LiteralValue> literals;
+        SymbolTablePtr symbol_table;
 
         BytecodeRunnerPtr create_runner(RuntimeEnvPtr runtime_env);
         void write_to_file(const std::string& file_path);

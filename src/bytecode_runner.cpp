@@ -3,6 +3,8 @@
 //
 
 #include "bytecode_runner.hpp"
+
+#include <utility>
 #include "environment.hpp"
 
 namespace CL {
@@ -22,13 +24,13 @@ namespace CL {
                 break;
             case Opcode::Load: {
                 uint16_t name_index = fetch16();
-                std::string name = names[name_index];
+                std::string name = symbol_table->get_name(name_index);;
                 push(current_stack_frame().environment->get(name));
             }
                 break;
             case Opcode::Store: {
                 uint16_t name_index = fetch16();
-                std::string name = names[name_index];
+                std::string name = symbol_table->get_name(name_index);
                 auto value = pop();
                 current_stack_frame().environment->assign(name, value);
                 push(value);
@@ -125,18 +127,20 @@ namespace CL {
                 break;
             case Opcode::Call: {
                 uint8_t call_arity = fetch8();
-                auto callable = pop();
+                auto callable = pop().as<CallablePtr>();
                 std::vector<RuntimeValue> argument_values;
                 argument_values.reserve(call_arity);
                 for (int i = 0; i < call_arity; i++) {
                     argument_values.push_back(pop());
                 }
-                auto result = callable.as<CallablePtr>()->call(argument_values);
-                auto as_bytecode_fn = std::dynamic_pointer_cast<BytecodeFunction>(callable.as<CallablePtr>());
+                auto as_bytecode_fn = std::dynamic_pointer_cast<BytecodeFunction>(callable);
                 // TODO Kinda hacky
                 // If it's not a bytecode function and there is a result
-                if (as_bytecode_fn == nullptr && result.has_value()) {
-                    push(result.value());
+                if (as_bytecode_fn == nullptr) {
+                    auto result = callable->call(argument_values);
+                    if (result.has_value()) push(result.value());
+                } else {
+                    call_function(as_bytecode_fn, argument_values);
                 }
             }
                 break;
@@ -161,6 +165,19 @@ namespace CL {
                 push(pop().get_named("__next").as<CallablePtr>()->call().value());
                 break;
         }
+    }
+
+    void BytecodeRunner::call_function(const BytecodeFunctionPtr &function, std::vector<RuntimeValue> arguments) {
+        auto call_env = std::make_shared<StackedEnvironment>(current_stack_frame().environment);
+        for (int i = 0; i < function->argument_names.size(); i ++) {
+            auto argument_name = function->argument_names[i];
+            call_env->bind(argument_name, arguments[i]);
+        }
+        push_frame(StackFrame {
+                call_env,
+                function->bytecode,
+                0
+        });
     }
 
     void BytecodeRunner::loop() {
@@ -206,9 +223,9 @@ namespace CL {
         return program_result;
     }
 
-    BytecodeRunner::BytecodeRunner(std::vector<uint8_t> main_chunk, std::deque<std::string> in_names,
+    BytecodeRunner::BytecodeRunner(std::vector<uint8_t> main_chunk, SymbolTablePtr in_symbol_table,
                                    RuntimeEnvPtr env)
-                                   : names(std::move(in_names)) {
+                                   : symbol_table(std::move(in_symbol_table)) {
         push_frame(StackFrame {
                 std::move(env),
                 std::move(main_chunk),
@@ -236,8 +253,10 @@ namespace CL {
     }
 
     std::optional<RuntimeValue> BytecodeFunction::call(const Args &args) {
-        runner->push_frame(StackFrame {
-            std::make_shared<StackedEnvironment>(runner->current_stack_frame().environment),
+        if(runner.expired()) throw CLException("This function's bytecode runner hasn't been set!");
+        auto runner_pointer = runner.lock();
+        runner_pointer->push_frame(StackFrame {
+            std::make_shared<StackedEnvironment>(runner_pointer->current_stack_frame().environment),
             bytecode
         });
         return std::optional<RuntimeValue>();

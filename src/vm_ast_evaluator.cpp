@@ -181,6 +181,7 @@ namespace CL {
 
 
     uint32_t VMASTEvaluator::add_literal(const LiteralValue& v) {
+        auto& literals = symbol_table->literals;
         auto literal_found = std::find(literals.begin(), literals.end(), v);
         if (literal_found != literals.end()) {
             return std::distance(literals.begin(), literal_found);
@@ -190,6 +191,7 @@ namespace CL {
     }
 
     uint16_t VMASTEvaluator::get_name_index(const std::string &name) {
+        auto& names = symbol_table->names;
         auto name_found = std::find(names.begin(), names.end(), name);
         if (name_found != names.end()) {
             return std::distance(names.begin(), name_found);

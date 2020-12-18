@@ -29,8 +29,9 @@ namespace CL {
 #endif
     class BytecodeFunction
             : public Callable {
+        friend class BytecodeRunner;
     private:
-        std::shared_ptr<BytecodeRunner> runner;
+        std::weak_ptr<BytecodeRunner> runner;
         std::vector<uint8_t> bytecode;
         std::vector<std::string> argument_names;
         bool is_variadic;
@@ -51,11 +52,11 @@ namespace CL {
             :   public StackMachine<RuntimeValue> {
         friend class BytecodeFunction;
     private:
+        SymbolTablePtr symbol_table;
         std::stack<StackFrame> execution_frames;
         std::optional<RuntimeValue> program_result;
 
         std::vector<RuntimeValue> constants;
-        std::deque<std::string> names;
         static Opcode decode(uint8_t code);
         void execute(Opcode op);
         void loop();
@@ -76,12 +77,14 @@ namespace CL {
 
     public:
         explicit  BytecodeRunner(std::vector<uint8_t> main_chunk,
-                                 std::deque<std::string> in_names,
+                                 SymbolTablePtr in_symbol_table,
                                  RuntimeEnvPtr env);
 
         std::optional<RuntimeValue> run();
         void set_constants(std::vector<RuntimeValue> in_constants) {
             constants = std::move(in_constants);
         }
+
+        void call_function(const BytecodeFunctionPtr &function, std::vector<RuntimeValue> arguments);
     };
 }

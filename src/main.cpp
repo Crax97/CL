@@ -96,20 +96,20 @@ void print_program(CL::CompiledProgram &program) {
             std::stringstream name_stream;
             name_stream << "Function (";
             for (auto& name_index : frame->names) {
-                name_stream << program_reference.names[name_index] << ",";
+                name_stream << program_reference.symbol_table->names[name_index] << ",";
             }
             name_stream << ")\n";
             return name_stream.str() + print_bytecode(3, frame->bytecode); }
     };
     std::cout << "CompiledProgram info: \n";
-    std::cout << "\t" << program.names.size() << " names\n";
+    std::cout << "\t" << program.symbol_table->names.size() << " names\n";
     int i = 0;
-    for (auto& name : program.names) {
+    for (auto& name : program.symbol_table->names) {
         std::cout << "\t\t " << i++ << " | " << name << "\n";
     }
     i = 0;
-    std::cout << "\t" << program.literals.size() << " literals\n";
-    for (auto& literal : program.literals) {
+    std::cout << "\t" << program.symbol_table->literals.size() << " literals\n";
+    for (auto& literal : program.symbol_table->literals) {
         std::cout << "\t\t " << i++ << " | " << std::visit(literal_visitor{program}, literal) << "\n";
     }
 
@@ -121,7 +121,7 @@ void compile_program(const std::filesystem::path& path){
     auto lexer = CL::Lexer(stream);
     auto parser = CL::Parser(lexer);
     auto expressions = parser.parse_all();
-    CL::VMASTEvaluator compiler;
+    CL::VMASTEvaluator compiler(std::make_shared<CL::SymbolTable>());
     for(auto& expr : expressions) {
         expr->evaluate(compiler);
     }
@@ -157,6 +157,7 @@ std::string read_from_console() {
 }
 
 void run_from_cli(const CL::RuntimeEnvPtr &env) {
+    CL::SymbolTablePtr global_symbols = std::make_shared<CL::SymbolTable>();
 	while (true) {
 		try {
 			auto source = read_from_console();
@@ -164,7 +165,7 @@ void run_from_cli(const CL::RuntimeEnvPtr &env) {
             auto lexer = CL::Lexer(stream);
             auto parser = CL::Parser(lexer);
             auto expressions = parser.parse_all();
-            CL::VMASTEvaluator compiler;
+            CL::VMASTEvaluator compiler(global_symbols);
             for(auto& expr : expressions) {
                 expr->evaluate(compiler);
             }

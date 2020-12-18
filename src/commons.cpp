@@ -55,4 +55,15 @@ Opcode opcode_from_unary(UnaryOp op) {
     }
 }
 
+    std::string SymbolTable::get_name(uint16_t name_index) const {
+            if (name_index >= names.size() || name_index < 0)
+                throw CLException("No such name with index " + std::to_string(name_index));
+            return names[name_index];
+    }
+
+    LiteralValue SymbolTable::get_literal(uint32_t literal_index) const {
+        if (literal_index >= literals.size() || literal_index < 0)
+            throw CLException("No such name with index " + std::to_string(literal_index));
+        return literals[literal_index];
+    }
 }

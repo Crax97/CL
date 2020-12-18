@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 #include <variant>
+#include <deque>
 
 #define TODO()                                                                 \
     {                                                                          \
@@ -46,6 +47,15 @@ using BytecodeRunnerPtr = std::shared_ptr<BytecodeRunner>;
 using FunctionCallback = std::function<std::optional<RuntimeValue>(const Args &args)>;
 using VoidFunctionCallback = std::function<void(const Args &args)>;
 using LiteralValue = std::variant<Number, String, std::shared_ptr<FunctionFrame>>;
+
+struct SymbolTable {
+    std::deque<std::string> names;
+    std::deque<LiteralValue> literals;
+
+    [[nodiscard]] std::string get_name(uint16_t name_index) const;
+    [[nodiscard]] LiteralValue get_literal(uint32_t literal_index) const;
+};
+using SymbolTablePtr = std::shared_ptr<SymbolTable>;
 
 enum class BinaryOp {
 	Multiplication,
