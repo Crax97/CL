@@ -223,8 +223,6 @@ void inject_math_functions(const RuntimeEnvPtr &env) {
 	dict_object->set_named("log2", CL::make_function(log2));
 	dict_object->set_named("deg2rad", CL::make_function(deg2rad));
 	dict_object->set_named("rad2deg", CL::make_function(rad2deg));
-    dict_object->set_named("cosh", CL::make_function(cosh));
-    dict_object->set_named("sinh", CL::make_function(sinh));
 
 	// Explicit instantiation because there are more overloads for abs
 	dict_object->set_named("abs", CL::make_function<double, double>(abs));
