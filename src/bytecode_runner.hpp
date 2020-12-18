@@ -16,6 +16,17 @@ namespace CL {
         int program_counter = 0;
         std::optional<RuntimeValue> return_value;
     };
+#if 0
+    struct ExternalCallFrame
+            : public StackFrame {
+        explicit ExternalCallFrame(std::optional<RuntimeValue> result) {
+            return_value = std::move(result);
+            environment = nullptr;
+            program_counter = 69420;
+            code = {};
+        }
+    };
+#endif
     class BytecodeFunction
             : public Callable {
     private:

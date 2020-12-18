@@ -118,7 +118,7 @@ void CompiledProgram::write_to_file(const std::string &file_path) {
         BytecodeRunnerPtr runner = std::make_shared<BytecodeRunner>(
                 main->bytecode,
                 names,
-                std::make_shared<StackedEnvironment>(runtime_env)
+                runtime_env
         );
 
         std::vector<RuntimeValue> constants;

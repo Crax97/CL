@@ -131,7 +131,13 @@ namespace CL {
                 for (int i = 0; i < call_arity; i++) {
                     argument_values.push_back(pop());
                 }
-                callable.as<CallablePtr>()->call(argument_values);
+                auto result = callable.as<CallablePtr>()->call(argument_values);
+                auto as_bytecode_fn = std::dynamic_pointer_cast<BytecodeFunction>(callable.as<CallablePtr>());
+                // TODO Kinda hacky
+                // If it's not a bytecode function and there is a result
+                if (as_bytecode_fn == nullptr && result.has_value()) {
+                    push(result.value());
+                }
             }
                 break;
             case Opcode::Module:
