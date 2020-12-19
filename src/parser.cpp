@@ -321,7 +321,7 @@ ExprPtr Parser::unary() {
 }
 
 ExprPtr Parser::exponentiation() {
-	auto left = call();
+	auto left = assign();
 	while (match(TokenType::Xor)) {
 		auto exponent = unary();
 		left = std::make_unique<BinaryExpression>(std::move(left),
@@ -331,29 +331,8 @@ ExprPtr Parser::exponentiation() {
 	return left;
 }
 
-ExprPtr Parser::call() {
-	auto left = assign();
-	while (match(TokenType::Left_Brace)) {
-		ExprList args = get_arguments();
-
-		left = std::make_unique<FunCallExpression>(
-			std::move(left),
-			std::move(args));
-	}
-	return left;
-}
-
-ExprList Parser::get_arguments() {
-	ExprList list;
-	while (!match(TokenType::Right_Brace)) {
-		list.push_back(expression());
-		match(TokenType::Comma);
-	}
-	return list;
-}
-
 ExprPtr Parser::assign() {
-	ExprPtr expr = literal();
+	ExprPtr expr = call();
 	if(match(TokenType::Dot, TokenType::Left_Square_Brace)) {
 		do {
 			ExprPtr what = nullptr;
@@ -387,6 +366,28 @@ ExprPtr Parser::assign() {
 		expr = std::make_unique<AssignExpression>(id, std::move(expression()));
 	}
 	return expr;
+}
+
+
+ExprPtr Parser::call() {
+    auto left = literal();
+    while (match(TokenType::Left_Brace)) {
+        ExprList args = get_arguments();
+
+        left = std::make_unique<FunCallExpression>(
+                std::move(left),
+                std::move(args));
+    }
+    return left;
+}
+
+ExprList Parser::get_arguments() {
+    ExprList list;
+    while (!match(TokenType::Right_Brace)) {
+        list.push_back(expression());
+        match(TokenType::Comma);
+    }
+    return list;
 }
 
 ExprPtr Parser::literal() {
