@@ -29,19 +29,19 @@ public:
 	virtual void visit_assign_expression(const std::string &name,
 										 const ExprPtr &value) = 0;
 	virtual void visit_fun_call(const ExprPtr &fun, const ExprList &args) = 0;
-	virtual void visit_fun_def(const Names &names, const ExprPtr &body) = 0;
-	virtual void visit_block_expression(const ExprList &block) = 0;
+	virtual void visit_fun_def_statement(const String& name, const Names &names, const StatementPtr &body) = 0;
+	virtual void visit_block_statement(const StatementList &block) = 0;
 	virtual void visit_return_expression(const ExprPtr &expr) = 0;
 	virtual void visit_break_expression() = 0;
 	virtual void visit_continue_expression() = 0;
-	virtual void visit_if_expression(const ExprPtr &cond,
-									 const ExprPtr &expr,
-									 const ExprPtr &else_branch) = 0;
-	virtual void visit_while_expression(const ExprPtr &cond,
-										const ExprPtr &body) = 0;
-	virtual void visit_for_expression(const std::string &name,
-									  const ExprPtr &iterator,
-									  const ExprPtr &body) = 0;
+	virtual void visit_if_statement(const ExprPtr &cond,
+                                    const StatementPtr &expr,
+                                    const StatementPtr &else_branch) = 0;
+	virtual void visit_while_statement(const ExprPtr &cond,
+                                       const StatementPtr &body) = 0;
+	virtual void visit_for_statement(const std::string &name,
+                                     const ExprPtr &iterator,
+                                     const StatementPtr &body) = 0;
 	virtual void visit_set_expression(const ExprPtr &obj,
 									  const ExprPtr &what,
 									  const ExprPtr &value) = 0;
@@ -53,6 +53,11 @@ public:
 class Expression {
 public:
 	virtual void evaluate(Evaluator &evaluator) const = 0;
+};
+
+class Statement {
+public:
+    virtual void execute(Evaluator& evaluator) const = 0;
 };
 
 class NumberExpression : public Expression {
@@ -93,6 +98,7 @@ public:
 		evaluator.visit_dict_expression(m_exprs);
 	}
 };
+
 class ListExpression : public Expression {
 private:
 	ExprList m_exprs;
@@ -193,102 +199,20 @@ public:
 	}
 };
 
-class IfExpression : public Expression {
-private:
-	ExprPtr m_cond;
-	ExprPtr m_body;
-	ExprPtr m_else;
-
-public:
-	explicit IfExpression(ExprPtr cond, ExprPtr body, ExprPtr else_branch)
-		: m_cond(std::move(cond)),
-		  m_body(std::move(body)),
-		  m_else(std::move(else_branch)) {
-	}
-
-	void evaluate(Evaluator &evaluator) const override {
-		evaluator.visit_if_expression(m_cond,
-									  m_body,
-									  m_else);
-	}
-};
-
-class WhileExpression : public Expression {
-private:
-	ExprPtr m_cond;
-	ExprPtr m_body;
-
-public:
-	explicit WhileExpression(ExprPtr cond, ExprPtr body)
-		: m_cond(std::move(cond)), m_body(std::move(body)) {
-	}
-	void evaluate(Evaluator &evaluator) const override {
-		evaluator.visit_while_expression(m_cond,
-										 m_body);
-	}
-};
-
-class ForExpression : public Expression {
-private:
-	std::string m_name;
-	ExprPtr m_iterable;
-	ExprPtr m_body;
-
-public:
-	explicit ForExpression(std::string name, ExprPtr iterable, ExprPtr body)
-		: m_name(std::move(name)),
-		  m_iterable(std::move(iterable)),
-		  m_body(std::move(body)) {
-	}
-	void evaluate(Evaluator &evaluator) const override {
-		evaluator.visit_for_expression(m_name,
-									   m_iterable,
-									   m_body);
-	}
-};
-
 class FunCallExpression : public Expression {
-private:
-	ExprPtr m_expr;
-	const ExprList m_args;
+    private:
+        ExprPtr m_expr;
+        const ExprList m_args;
 
-public:
-	explicit FunCallExpression(ExprPtr expr, ExprList args) noexcept
-		: m_expr(std::move(expr)), m_args(std::move(args)) {
-	}
-	void evaluate(Evaluator &evaluator) const override {
-		evaluator.visit_fun_call(m_expr,
-								 m_args);
-	}
-};
-
-class FunDef : public Expression {
-private:
-	const ExprPtr m_body;
-	Names m_args;
-
-public:
-	explicit FunDef(Names arg_names, ExprPtr body)
-		: m_args(std::move(arg_names)), m_body(std::move(body)) {
-	}
-	void evaluate(Evaluator &evaluator) const override {
-		evaluator.visit_fun_def(m_args,
-								m_body);
-	}
-};
-
-class BlockExpression : public Expression {
-private:
-	ExprList m_body;
-
-public:
-	explicit BlockExpression(ExprList body)
-		: m_body(std::move(body)) {
-	}
-	void evaluate(Evaluator &evaluator) const override {
-		evaluator.visit_block_expression(m_body);
-	}
-};
+    public:
+        explicit FunCallExpression(ExprPtr expr, ExprList args) noexcept
+                : m_expr(std::move(expr)), m_args(std::move(args)) {
+        }
+        void evaluate(Evaluator &evaluator) const override {
+            evaluator.visit_fun_call(m_expr,
+                                     m_args);
+        }
+    };
 
 class ReturnExpression : public Expression {
 private:
@@ -358,6 +282,104 @@ public:
 	void evaluate(Evaluator &evaluator) const override {
 		evaluator.visit_module_definition(m_expressions);
 	}
+};
+
+class ExpressionStatement : public Statement {
+private:
+    const ExprPtr expr;
+
+public:
+    explicit ExpressionStatement(ExprPtr in_expr)
+        : expr(std::move(in_expr)) {}
+
+    void execute(Evaluator& evaluator) const override {
+        expr->evaluate(evaluator);
+    }
+};
+
+class IfStatement : public Statement {
+private:
+    ExprPtr m_cond;
+    StatementPtr m_body;
+    StatementPtr m_else;
+
+public:
+    explicit IfStatement(ExprPtr cond, StatementPtr body, StatementPtr else_branch)
+            : m_cond(std::move(cond)),
+              m_body(std::move(body)),
+              m_else(std::move(else_branch)) {
+    }
+
+    void execute(Evaluator &evaluator) const override {
+        evaluator.visit_if_statement(m_cond,
+                                     m_body,
+                                     m_else);
+    }
+};
+
+class WhileStatement : public Statement {
+private:
+    ExprPtr m_cond;
+    StatementPtr m_body;
+
+public:
+    explicit WhileStatement(ExprPtr cond, StatementPtr body)
+            : m_cond(std::move(cond)), m_body(std::move(body)) {
+    }
+    void execute(Evaluator &evaluator) const override {
+        evaluator.visit_while_statement(m_cond,
+                                        m_body);
+    }
+};
+
+class ForStatement : public Statement {
+private:
+    std::string m_name;
+    ExprPtr m_iterable;
+    StatementPtr m_body;
+
+public:
+    explicit ForStatement(std::string name, ExprPtr iterable, StatementPtr body)
+            : m_name(std::move(name)),
+              m_iterable(std::move(iterable)),
+              m_body(std::move(body)) {
+    }
+    void execute(Evaluator &evaluator) const override {
+        evaluator.visit_for_statement(m_name,
+                                      m_iterable,
+                                      m_body);
+    }
+};
+
+
+class FunDefStatement : public Statement {
+private:
+    String m_name;
+    Names m_args;
+    const StatementPtr m_body;
+
+public:
+    explicit FunDefStatement(String name, Names arg_names, StatementPtr body)
+            : m_name(std::move(name)), m_args(std::move(arg_names)),m_body(std::move(body)) {
+    }
+    void execute(Evaluator &evaluator) const override {
+        evaluator.visit_fun_def_statement(m_name,
+                                          m_args,
+                                          m_body);
+    }
+};
+
+class BlockStatement : public Statement {
+private:
+    StatementList m_body;
+
+public:
+    explicit BlockStatement(StatementList body)
+            : m_body(std::move(body)) {
+    }
+    void execute(Evaluator &evaluator) const override {
+        evaluator.visit_block_statement(m_body);
+    }
 };
 
 } // namespace CL

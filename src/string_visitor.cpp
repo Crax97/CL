@@ -81,9 +81,9 @@ void StringVisitor::visit_fun_call(const ExprPtr &fun, const ExprList &args) {
 	fun->evaluate(*this);
 	push(pop() + "(" + arg_str + ")");
 }
-void StringVisitor::visit_fun_def(const Names &names, const ExprPtr &body) {
+void StringVisitor::visit_fun_def_statement(const String& name, const Names &names, const StatementPtr &body) {
 	m_scope++;
-	body->evaluate(*this);
+	body->execute(*this);
 
 	std::string name_string = " ";
 	std::for_each(names.begin(),
@@ -91,15 +91,15 @@ void StringVisitor::visit_fun_def(const Names &names, const ExprPtr &body) {
 				  [&name_string](const auto &name) {
 					  name_string.append(name + " ");
 				  });
-	push("(" + name_string + ") = " + pop());
+	push("function " + name + "(" + name_string + ")\n" + pop());
 	m_scope--;
 }
-void StringVisitor::visit_block_expression(const ExprList &block) {
+void StringVisitor::visit_block_statement(const StatementList &block) {
 	std::string result;
 	std::for_each(block.begin(),
 				  block.end(),
 				  [&result, this](const auto &expr) {
-					  expr->evaluate(*this);
+					  expr->execute(*this);
 					  result.append(pop());
 				  });
 	push(get_tabs() + "{\n " + result + "\n}");
@@ -114,36 +114,36 @@ void StringVisitor::visit_break_expression() {
 void StringVisitor::visit_continue_expression() {
 	push("continue");
 }
-void StringVisitor::visit_if_expression(const ExprPtr &cond,
-										const ExprPtr &expr,
-										const ExprPtr &else_branch) {
+void StringVisitor::visit_if_statement(const ExprPtr &cond,
+                                       const StatementPtr &expr,
+                                       const StatementPtr &else_branch) {
 
 	cond->evaluate(*this);
-	expr->evaluate(*this);
+	expr->execute(*this);
 
 	std::string result = "if " + pop() + " " + pop();
 	if(else_branch) {
-		else_branch->evaluate(*this);
+		else_branch->execute(*this);
 		auto else_str = pop();
 		result += "\n else " + else_str;
 	}
 	push(result);
 }
 
-void StringVisitor::visit_while_expression(const ExprPtr &cond,
-										   const ExprPtr &body) {
+void StringVisitor::visit_while_statement(const ExprPtr &cond,
+                                          const StatementPtr &body) {
 	cond->evaluate(*this);
-	body->evaluate(*this);
+	body->execute(*this);
 
 	auto body_str = pop();
 
 	push("while " + pop() + " " + body_str);
 }
-void StringVisitor::visit_for_expression(const std::string &name,
-										 const ExprPtr &iterable,
-										 const ExprPtr &body) {
+void StringVisitor::visit_for_statement(const std::string &name,
+                                        const ExprPtr &iterable,
+                                        const StatementPtr &body) {
 	iterable->evaluate(*this);
-	body->evaluate(*this);
+	body->execute(*this);
 
 	auto body_str = pop();
 	auto iterable_str = pop();

@@ -123,30 +123,37 @@ void Parser::throw_exception(const std::string &why, const Token &cause) {
 	throw ParsingException(cause, stream.str());
 }
 
-ExprList Parser::parse_all() {
-	auto list = ExprList();
+StatementList Parser::parse_all() {
+	auto list = StatementList();
 	while (!m_lexer.is_at_end()
 		&& m_lexer.peek().get_type() != TokenType::Eof) {
-		auto next_statement = expression();
+		auto next_statement = statement();
 		list.push_back(std::move(next_statement));
 	}
 	return list;
 }
 
+StatementPtr Parser::statement() {
+    if (match(TokenType::Left_Curly_Brace)) {
+        return block_statement();
+    } else if (match(TokenType::While)) {
+        return while_statement();
+    } else if (match(TokenType::For)) {
+        return for_statement();
+    } else if (match(TokenType::If)) {
+        return if_statement();
+    } else if(match(TokenType::Fun)) {
+        return fun_statement();
+    }
+    return std::make_unique<ExpressionStatement>(expression());
+}
+
 ExprPtr Parser::expression() {
-	if(match(TokenType::Left_Curly_Brace)) {
-		return block_expression();
-	} else if(match(TokenType::Return)) {
-		return return_expression();
-	} else if(match(TokenType::Module)) {
-		return module_expression();
-	} else if(match(TokenType::While)) {
-		return while_expression();
-	} else if(match(TokenType::For)) {
-		return for_expression();
-	} else if(match(TokenType::If)) {
-		return if_expression();
-	} else if(match(TokenType::Continue)) {
+    if(match(TokenType::Return)) {
+        return return_expression();
+    } else if(match(TokenType::Module)) {
+        return module_expression();
+    } else if(match(TokenType::Continue)) {
 		return std::make_shared<ContinueExpression>();
 	} else if(match(TokenType::Break)) {
 		return std::make_shared<BreakExpression>();
@@ -154,14 +161,14 @@ ExprPtr Parser::expression() {
 	return and_expr();
 }
 
-ExprPtr Parser::if_expression() {
+StatementPtr Parser::if_statement() {
 	auto cond = expression();
-	auto body = expression();
-	ExprPtr else_block = nullptr;
+	auto body = statement();
+	StatementPtr else_block = nullptr;
 	if(match(TokenType::Else)) {
-		else_block = expression();
+		else_block = statement();
 	}
-	return std::make_unique<IfExpression>(std::move(cond),
+	return std::make_unique<IfStatement>(std::move(cond),
 										  std::move(body),
 										  std::move(else_block));
 }
@@ -176,28 +183,28 @@ ExprPtr Parser::module_expression() {
 	return std::make_unique<ModuleExpression>(list);
 }
 
-ExprPtr Parser::while_expression() {
+StatementPtr Parser::while_statement() {
 	auto cond = expression();
-	auto body = expression();
-	return std::make_unique<WhileExpression>(cond, body);
+	auto body = statement();
+	return std::make_unique<WhileStatement>(cond, body);
 }
 
-ExprPtr Parser::for_expression() {
+StatementPtr Parser::for_statement() {
 	auto name = consume("For expressions start with an identifier",
 						TokenType::Identifier).get<String>();
 	consume("For expressions must have an \"in\" after the identifier",
 			TokenType::In);
 	auto iterator = expression();
-	auto body = expression();
-	return std::make_unique<ForExpression>(name, iterator, body);
+	auto body = statement();
+	return std::make_unique<ForStatement>(name, iterator, body);
 }
 
-ExprPtr Parser::block_expression() {
-	auto list = ExprList();
+StatementPtr Parser::block_statement() {
+	auto list = StatementList();
 	while (!match(TokenType::Right_Curly_Brace)) {
-		list.push_back(expression());
+		list.push_back(statement());
 	}
-	return std::make_unique<BlockExpression>(std::move(list));
+	return std::make_unique<BlockStatement>(std::move(list));
 }
 
 Names Parser::arg_names() {
@@ -399,8 +406,6 @@ ExprPtr Parser::literal() {
 	} else if(match(TokenType::Identifier)) {
 		auto name = next_token.get<std::string>();
 		return std::make_unique<VarExpression>(name);
-	} else if(match(TokenType::Fun)) {
-		return fun_expression();
 	} else if(match(TokenType::Left_Brace)) {
 		auto expr = expression();
 		consume("Grouping expressions must end with a )",
@@ -420,12 +425,15 @@ ExprPtr Parser::literal() {
 	return nullptr;
 }
 
-ExprPtr Parser::fun_expression() {
+StatementPtr Parser::fun_statement() {
+    if (!is_in_global_scope())
+        throw ParsingException(peek(), "Functions can only be defined in the global scope");
+
+    auto function_name = consume("Functions are followed by an identifier", TokenType::Identifier)
+            .get<String>();
 	auto names = arg_names();
-	consume("LambdaStyleFunction definitions expect a -> after the fun keyword",
-			TokenType::Arrow);
-	auto body = expression();
-	return std::make_unique<FunDef>(names, std::move(body));
+	auto body = statement();
+	return std::make_unique<FunDefStatement>(function_name, names, std::move(body));
 }
 
 ExprPtr Parser::dict_expression() {
@@ -462,4 +470,5 @@ bool Parser::match_expression_begin() {
 		p == TokenType::Not || p == TokenType::Left_Brace
 		|| p == TokenType::Self);
 }
+
 } // namespace CL

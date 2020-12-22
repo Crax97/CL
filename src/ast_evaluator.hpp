@@ -55,20 +55,20 @@ private:
 	void visit_assign_expression(const std::string &name,
 								 const ExprPtr &value) override;
 	void visit_fun_call(const ExprPtr &fun, const ExprList &args) override;
-	void visit_fun_def(const Names &names, const ExprPtr &body) override;
-	void visit_block_expression(const ExprList &block) override;
+	void visit_fun_def_statement(const String& name, const Names &names, const StatementPtr &body) override;
+	void visit_block_statement(const StatementList &block) override;
 	void visit_return_expression(const ExprPtr &expr) override;
 	void visit_break_expression() override;
 	void visit_continue_expression() override;
-	void visit_if_expression(const ExprPtr &cond,
-							 const ExprPtr &expr,
-							 const ExprPtr &else_branch)
+	void visit_if_statement(const ExprPtr &cond,
+                            const StatementPtr &expr,
+                            const StatementPtr &else_branch)
 	override;
-	void visit_while_expression(const ExprPtr &cond,
-								const ExprPtr &body) override;
-	void visit_for_expression(const std::string &name,
-							  const ExprPtr &iterable,
-							  const ExprPtr &body) override;
+	void visit_while_statement(const ExprPtr &cond,
+                               const StatementPtr &body) override;
+	void visit_for_statement(const std::string &name,
+                             const ExprPtr &iterable,
+                             const StatementPtr &body) override;
 	void visit_set_expression(const ExprPtr &obj,
 							  const ExprPtr &name,
 							  const ExprPtr &val) override;
@@ -88,12 +88,12 @@ public:
 };
 class ASTFunction : public Callable {
 private:
-	ExprPtr m_body;
+	StatementPtr m_body;
 	std::shared_ptr<StackedEnvironment> m_definition_env;
 	Names m_arg_names;
 
 public:
-	ASTFunction(ExprPtr body,
+	ASTFunction(StatementPtr body,
 				Names names,
 				std::shared_ptr<StackedEnvironment> definition_env)
 		: m_body(std::move(body)),
@@ -114,7 +114,7 @@ public:
 			name_string.pop_back();
 			name_string.pop_back();
 		}
-		m_body->evaluate(eval);
+		m_body->execute(eval);
 		return "fun( " + name_string + " ) -> " + eval.get_result();
 	}
 };

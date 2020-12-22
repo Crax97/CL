@@ -25,6 +25,7 @@ class RuntimeValue;
 
 class Callable;
 class Expression;
+class Statement;
 class Indexable;
 class StackedEnvironment;
 class CompilationStackFrame;
@@ -41,6 +42,8 @@ using Args = std::vector<RuntimeValue>;
 using Names = std::vector<std::string>;
 using ExprPtr = std::shared_ptr<Expression>;
 using ExprList = std::vector<ExprPtr>;
+using StatementPtr = std::shared_ptr<Statement>;
+using StatementList = std::vector<StatementPtr>;
 using CallablePtr = std::shared_ptr<Callable>;
 using BytecodeFunctionPtr = std::shared_ptr<BytecodeFunction>;
 using BytecodeRunnerPtr = std::shared_ptr<BytecodeRunner>;
@@ -168,7 +171,7 @@ enum class TokenType {
 	Break,
 	Dict,
 	List,
-
+    Expose,
 };
 
 std::string token_type_to_string(TokenType type) noexcept;
