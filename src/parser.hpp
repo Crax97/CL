@@ -52,13 +52,15 @@ private:
 	template<typename T, typename... Tokens>
 	Token consume(const std::string &error, T t, Tokens... ts);
 	Token consume(const std::string &error, TokenType type);
+
+	StatementPtr statement();
 	ExprPtr expression();
-	ExprPtr block_expression();
+	StatementPtr block_statement();
 	ExprPtr return_expression();
 	ExprPtr module_expression();
-	ExprPtr if_expression();
-	ExprPtr while_expression();
-	ExprPtr for_expression();
+	StatementPtr if_statement();
+	StatementPtr while_statement();
+	StatementPtr for_statement();
 	ExprPtr and_expr();
 	ExprPtr or_expr();
 	ExprPtr bitwise();
@@ -73,6 +75,7 @@ private:
 	ExprPtr get();
 	ExprPtr call();
 	ExprPtr literal();
+    StatementPtr fun_statement();
 
 	ExprPtr dict_expression();
 	ExprPtr list_expression();
@@ -89,8 +92,6 @@ private:
 public:
 	explicit Parser(Lexer lexer);
 
-	ExprList parse_all();
-
-	ExprPtr fun_expression();
+	StatementList parse_all();
 };
 } // namespace CL

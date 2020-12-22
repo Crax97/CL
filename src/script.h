@@ -10,10 +10,10 @@ namespace CL {
 class Script {
 private:
 	RuntimeEnvPtr m_execution_env;
-	ExprList m_script_expressions;
+    StatementList m_script_statements;
 private:
-	explicit Script(ExprList list, RuntimeEnvPtr env) :
-		m_script_expressions(std::move(list)),
+	explicit Script(StatementList list, RuntimeEnvPtr env) :
+        m_script_statements(std::move(list)),
 		m_execution_env(std::move(env)) {}
 public:
 	static Script from_file(const std::string &path,

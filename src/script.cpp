@@ -39,8 +39,8 @@ Script Script::from_source(const std::string &source, RuntimeEnvPtr env) {
 
 std::optional<RuntimeValue> Script::run() {
 	auto evaluator = ASTEvaluator(m_execution_env);
-	for (const auto &expr : m_script_expressions) {
-		expr->evaluate(evaluator);
+	for (const auto &expr : m_script_statements) {
+		expr->execute(evaluator);
 	}
 	return evaluator.get_result();
 }
