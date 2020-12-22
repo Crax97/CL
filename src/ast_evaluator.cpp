@@ -157,10 +157,10 @@ void ASTEvaluator::visit_fun_call(const ExprPtr &fun, const ExprList &args) {
 	}
 }
 
-void ASTEvaluator::visit_fun_def_statement(const Names &names, const StatementPtr &body) {
+void ASTEvaluator::visit_fun_def_statement(const String& name, const Names &names, const StatementPtr &body) {
 	auto fun = std::make_shared<ASTFunction>(body, names, m_env);
 	auto val = RuntimeValue(fun);
-	push(val);
+	m_env->bind(name, val);
 }
 
 void ASTEvaluator::visit_return_expression(const ExprPtr &expr) {

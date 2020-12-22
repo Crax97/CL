@@ -33,7 +33,7 @@ public:
 	void visit_assign_expression(const std::string &name,
 								 const ExprPtr &value) override;
 	void visit_fun_call(const ExprPtr &fun, const ExprList &args) override;
-	void visit_fun_def_statement(const Names &names, const StatementPtr &body) override;
+	void visit_fun_def_statement(const String& name, const Names &names, const StatementPtr &body) override;
 	void visit_block_statement(const StatementList &block) override;
 	void visit_break_expression() override;
 	void visit_continue_expression() override;

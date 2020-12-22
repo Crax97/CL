@@ -81,7 +81,7 @@ void StringVisitor::visit_fun_call(const ExprPtr &fun, const ExprList &args) {
 	fun->evaluate(*this);
 	push(pop() + "(" + arg_str + ")");
 }
-void StringVisitor::visit_fun_def_statement(const Names &names, const StatementPtr &body) {
+void StringVisitor::visit_fun_def_statement(const String& name, const Names &names, const StatementPtr &body) {
 	m_scope++;
 	body->execute(*this);
 
@@ -91,7 +91,7 @@ void StringVisitor::visit_fun_def_statement(const Names &names, const StatementP
 				  [&name_string](const auto &name) {
 					  name_string.append(name + " ");
 				  });
-	push("(" + name_string + ") = " + pop());
+	push("function " + name + "(" + name_string + ")\n" + pop());
 	m_scope--;
 }
 void StringVisitor::visit_block_statement(const StatementList &block) {

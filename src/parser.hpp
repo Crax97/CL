@@ -41,6 +41,9 @@ namespace CL {
 
 class Parser {
 private:
+
+    int lexical_scope = 0;
+
 	std::vector<Token> m_parsed_tokens;
 	size_t m_current_token;
 	Lexer m_lexer;
@@ -80,6 +83,7 @@ private:
 	ExprPtr dict_expression();
 	ExprPtr list_expression();
 
+	bool is_in_global_scope() const { return lexical_scope == 0; }
 	bool match_expression_begin();
 	Names arg_names();
 	ExprList get_arguments();

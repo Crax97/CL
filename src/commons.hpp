@@ -116,7 +116,7 @@ enum class TokenType {
 	Break,
 	Dict,
 	List,
-
+    Expose,
 };
 
 std::string token_type_to_string(TokenType type) noexcept;

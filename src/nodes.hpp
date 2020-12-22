@@ -29,7 +29,7 @@ public:
 	virtual void visit_assign_expression(const std::string &name,
 										 const ExprPtr &value) = 0;
 	virtual void visit_fun_call(const ExprPtr &fun, const ExprList &args) = 0;
-	virtual void visit_fun_def_statement(const Names &names, const StatementPtr &body) = 0;
+	virtual void visit_fun_def_statement(const String& name, const Names &names, const StatementPtr &body) = 0;
 	virtual void visit_block_statement(const StatementList &block) = 0;
 	virtual void visit_return_expression(const ExprPtr &expr) = 0;
 	virtual void visit_break_expression() = 0;
@@ -354,15 +354,17 @@ public:
 
 class FunDefStatement : public Statement {
 private:
-    const StatementPtr m_body;
+    String m_name;
     Names m_args;
+    const StatementPtr m_body;
 
 public:
-    explicit FunDefStatement(Names arg_names, StatementPtr body)
-            : m_args(std::move(arg_names)), m_body(std::move(body)) {
+    explicit FunDefStatement(String name, Names arg_names, StatementPtr body)
+            : m_name(std::move(name)), m_args(std::move(arg_names)),m_body(std::move(body)) {
     }
     void execute(Evaluator &evaluator) const override {
-        evaluator.visit_fun_def_statement(m_args,
+        evaluator.visit_fun_def_statement(m_name,
+                                          m_args,
                                           m_body);
     }
 };

@@ -426,11 +426,14 @@ ExprPtr Parser::literal() {
 }
 
 StatementPtr Parser::fun_statement() {
+    if (!is_in_global_scope())
+        throw ParsingException(peek(), "Functions can only be defined in the global scope");
+
+    auto function_name = consume("Functions are followed by an identifier", TokenType::Identifier)
+            .get<String>();
 	auto names = arg_names();
-	consume("function definitions expect a -> after the fun keyword",
-			TokenType::Arrow);
 	auto body = statement();
-	return std::make_unique<FunDefStatement>(names, std::move(body));
+	return std::make_unique<FunDefStatement>(function_name, names, std::move(body));
 }
 
 ExprPtr Parser::dict_expression() {
