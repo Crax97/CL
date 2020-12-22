@@ -66,4 +66,12 @@ Opcode opcode_from_unary(UnaryOp op) {
             throw CLException("No such name with index " + std::to_string(literal_index));
         return literals[literal_index];
     }
+
+    uint16_t SymbolTable::get_name_index(const std::string& in_name) const {
+            for (int i = 0; i < names.size(); i ++) {
+                if (names[i] == in_name)
+                    return i;
+            }
+            throw CLException("Name not found: " + in_name);
+        }
 }

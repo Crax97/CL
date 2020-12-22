@@ -90,9 +90,7 @@ namespace CL {
         push(function);
         body->execute(*this);
         pop();
-
-        int32_t index = add_literal(function);
-        current_frame().add_opcode32(Opcode::Load_Literal, index);
+        symbol_table->functions[fun_name] = CompiledFunction { fun_name, indices, function->bytecode };
     }
 
     void VMASTEvaluator::visit_block_statement(const StatementList &block) {
@@ -131,8 +129,8 @@ namespace CL {
     }
 
     void VMASTEvaluator::visit_while_statement(const ExprPtr &cond, const StatementPtr &body) {
-        cond->evaluate(*this);
         int jump_location = current_frame().add_opcode32(Opcode::Jump_False, 0);
+        cond->evaluate(*this);
         body->execute(*this);
         current_frame().set32(jump_location, current_frame().bytecode_count());
     }
@@ -141,15 +139,15 @@ namespace CL {
         get_name_index(name);
         iterator->evaluate(*this);
 
-        int for_location = current_frame().bytecode_count();
+        unsigned int for_location = current_frame().bytecode_count();
         current_frame().add_opcode(Opcode::Iter_Has_Next);
-        current_frame().add_opcode32(Opcode::Jump_False, 0);
-        int jump_false_location = current_frame().bytecode_count();
+        unsigned int jump_false_location = current_frame().add_opcode32(Opcode::Jump_False, 0);
         current_frame().add_opcode(Opcode::Get_Iter_Next);
         body->execute(*this);
         current_frame().add_opcode32(Opcode::Jump, for_location);
 
-        current_frame().set32(jump_false_location, current_frame().bytecode_count());
+        int last_offset = current_frame().bytecode_count();
+        current_frame().set32(jump_false_location, last_offset);
     }
 
     void VMASTEvaluator::visit_set_expression(const ExprPtr &obj, const ExprPtr &what, const ExprPtr &value) {
@@ -206,7 +204,7 @@ namespace CL {
         int position = bytecode_count();
         bytecode.push_back((uint8_t)(op));
         bytecode.push_back((uint8_t)(value));
-        return position;
+        return position + 1;
     }
 
     int CompilationStackFrame::add_opcode(Opcode op, OpcodeValue16 value) {
@@ -214,7 +212,7 @@ namespace CL {
         bytecode.push_back((uint8_t)(op));
         bytecode.push_back((uint8_t)(value >> 8));
         bytecode.push_back((uint8_t)(value & 0x00FF));
-        return position;
+        return position + 1;
     }
 
     int CompilationStackFrame::add_opcode32(Opcode op, OpcodeValue32 value) {
@@ -224,7 +222,7 @@ namespace CL {
         bytecode.push_back((uint8_t)(value >> 16));
         bytecode.push_back((uint8_t)(value >> 8));
         bytecode.push_back((uint8_t)(value & 0x00FF));
-        return position;
+        return position + 1;
     }
 
     [[maybe_unused]] int CompilationStackFrame::set16(int position, OpcodeValue16 value) {
@@ -235,7 +233,7 @@ namespace CL {
         return position;
     }
 
-    int CompilationStackFrame::set32(int position, OpcodeValue32 value) {
+    unsigned int CompilationStackFrame::set32(unsigned int position, OpcodeValue32 value) {
         uint8_t byte1 = value >> 24;
         uint8_t byte2 = value >> 16;
         uint8_t byte3 = value >> 8;

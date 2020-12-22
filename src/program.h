@@ -13,7 +13,6 @@ namespace CL {
     enum class LiteralType : uint8_t {
         Number = 0x01,
         String = 0x02,
-        Function = 0x03,
     };
 
     /*
@@ -24,19 +23,30 @@ namespace CL {
      * literals: literal_counts (type, value) pairs.
      *      if type == Number then value is a 64 bit double
      *      if type == String the value is a null terminated string
-     *      if type == Function then value is a (fun_names, fun_length, name_indices, code) pair where:
-     *         fun_names is an 8-bit unsigned integer representing the length of the name_indices array
-     *         fun_length is a 64bit value representing the length of the code array
-     *         name_indices is an array of 16 bit values of length fun_names that represents the indices of the "names" array
-     *         code is the code of the function
+     *
+     * functions: 32 bit integer with the number of (name_index, arg_count, args, code_size, code) tuples:
+     *      name_index is the 16 bit index of this function's name in the names array
+     *      arg_count is the 8 bit count of argument indices
+     *      args is an array of 16 bit indices of arg_count length
+     *      code_size is a 64 bit unsigned integer containing this function's bytecode length
+     *      code is the bytecode of the function
      *  main_code
      * */
+    struct FunctionInfo {
+        uint16_t name_index {};
+        uint8_t arg_count {};
+        std::vector<uint16_t> args{};
+        uint64_t code_size {};
+        std::vector<uint8_t> bytecode{};
+    };
     struct ProgramHeader {
         // This must be "BADCODE\0"
         char magic[8] ="BADCODE";
         uint64_t timestamp {};
         // Defines how many names the program contains
         uint16_t name_count {};
+        // Defines how many literal values are present in the program
+        uint32_t function_count {};
         // Defines how many literal values are present in the program
         uint32_t literals_count {};
     };
@@ -46,6 +56,7 @@ namespace CL {
         void write_header(std::ostream &output_file_stream, const ProgramHeader &header) const;
         void write_names(std::basic_ofstream<char> &output_file_stream) const;
         void write_literals(std::basic_ofstream<char> &output_file_stream);
+        void write_functions(std::basic_ofstream<char> &output_file_stream);
         void write_bytecode(std::ostream &output_file_stream);
     public:
         std::shared_ptr<CompilationStackFrame> main;

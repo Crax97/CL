@@ -49,12 +49,20 @@ using BytecodeFunctionPtr = std::shared_ptr<BytecodeFunction>;
 using BytecodeRunnerPtr = std::shared_ptr<BytecodeRunner>;
 using FunctionCallback = std::function<std::optional<RuntimeValue>(const Args &args)>;
 using VoidFunctionCallback = std::function<void(const Args &args)>;
-using LiteralValue = std::variant<Number, String, std::shared_ptr<FunctionFrame>>;
+using LiteralValue = std::variant<Number, String>;
+
+struct CompiledFunction {
+    String name;
+    std::vector<uint16_t> names;
+    std::vector<uint8_t> bytecode;
+};
 
 struct SymbolTable {
     std::deque<std::string> names;
     std::deque<LiteralValue> literals;
+    std::map<String, CompiledFunction> functions;
 
+    [[nodiscard]] uint16_t get_name_index(const std::string& in_name) const;
     [[nodiscard]] std::string get_name(uint16_t name_index) const;
     [[nodiscard]] LiteralValue get_literal(uint32_t literal_index) const;
 };

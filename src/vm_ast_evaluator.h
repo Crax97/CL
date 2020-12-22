@@ -23,12 +23,13 @@ namespace CL {
         int add_opcode(Opcode op);
         int add_opcode(Opcode op, OpcodeValue16 value);
         int add_opcode32(Opcode op, OpcodeValue32 value);
+        int add_opcode8(Opcode op, uint8_t value);
 
         [[maybe_unused]] int set16(int position, OpcodeValue16 value);
-        int set32(int position, OpcodeValue32 value);
+        unsigned int set32(unsigned int position, OpcodeValue32 value);
         [[nodiscard]] int bytecode_count() const { return bytecode.size(); }
+        [[nodiscard]] unsigned int current_offset() const { return bytecode.size() - 1; }
 
-        int add_opcode8(Opcode op, uint8_t value);
     };
 
     struct FunctionFrame : public CompilationStackFrame {
