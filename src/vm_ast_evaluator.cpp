@@ -136,13 +136,15 @@ namespace CL {
     }
 
     void VMASTEvaluator::visit_for_statement(const std::string &name, const ExprPtr &iterator, const StatementPtr &body) {
-        get_name_index(name);
+        uint16_t index = get_name_index(name);
         iterator->evaluate(*this);
 
         unsigned int for_location = current_frame().bytecode_count();
         current_frame().add_opcode(Opcode::Iter_Has_Next);
         unsigned int jump_false_location = current_frame().add_opcode32(Opcode::Jump_False, 0);
         current_frame().add_opcode(Opcode::Get_Iter_Next);
+        current_frame().add_opcode(Opcode::Store, index);
+
         body->execute(*this);
         current_frame().add_opcode32(Opcode::Jump, for_location);
 

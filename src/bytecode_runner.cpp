@@ -176,10 +176,10 @@ namespace CL {
             case Opcode::Get_Iter:
                 break;
             case Opcode::Iter_Has_Next:
-                push(pop().get_named("__has_next").as<CallablePtr>()->call().value().is_truthy());
+                push(peek().get_named("__has_next").as<CallablePtr>()->call().value().is_truthy());
                 break;
             case Opcode::Get_Iter_Next:
-                push(pop().get_named("__next").as<CallablePtr>()->call().value());
+                push(peek().get_named("__next").as<CallablePtr>()->call().value());
                 break;
         }
     }
