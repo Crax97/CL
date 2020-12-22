@@ -158,24 +158,8 @@ namespace CL {
             case Opcode::Jump:
                 current_stack_frame().program_counter = fetch32();
                 break;
-            case Opcode::Call: {
-                uint8_t call_arity = fetch8();
-                auto callable = pop().as<CallablePtr>();
-                std::vector<RuntimeValue> argument_values;
-                argument_values.reserve(call_arity);
-                for (int i = 0; i < call_arity; i++) {
-                    argument_values.push_back(pop());
-                }
-                auto as_bytecode_fn = std::dynamic_pointer_cast<BytecodeFunction>(callable);
-                // TODO Kinda hacky
-                // If it's not a bytecode function and there is a result
-                if (as_bytecode_fn == nullptr) {
-                    auto result = callable->call(argument_values);
-                    if (result.has_value()) push(result.value());
-                } else {
-                    call_function(as_bytecode_fn, argument_values);
-                }
-            }
+            case Opcode::Call:
+                call_function();
                 break;
             case Opcode::Module:
                 break;
@@ -200,17 +184,32 @@ namespace CL {
         }
     }
 
-    void BytecodeRunner::call_function(const BytecodeFunctionPtr &function, std::vector<RuntimeValue> arguments) {
-        auto call_env = std::make_shared<StackedEnvironment>(current_stack_frame().environment);
-        for (int i = 0; i < function->argument_names.size(); i ++) {
-            auto argument_name = function->argument_names[i];
-            call_env->bind(argument_name, arguments[function->argument_names.size() - i - 1]);
+    void BytecodeRunner::call_function() {
+        uint8_t call_arity = fetch8();
+        auto callable = pop().as<CallablePtr>();
+        std::vector<RuntimeValue> argument_values;
+        argument_values.reserve(call_arity);
+        for (int i = 0; i < call_arity; i++) {
+            argument_values.push_back(pop());
         }
-        push_frame(StackFrame {
-                call_env,
-                function->bytecode,
-                0
-        });
+        auto as_bytecode_fn = std::dynamic_pointer_cast<BytecodeFunction>(callable);
+        // TODO Kinda hacky
+        // If it's not a bytecode function and there is a result
+        if (as_bytecode_fn == nullptr) {
+            auto result = callable->call(argument_values);
+            if (result.has_value()) push(result.value());
+        } else {
+            auto call_env = std::make_shared<StackedEnvironment>(current_stack_frame().environment);
+            for (int i = 0; i < as_bytecode_fn->argument_names.size(); i++) {
+                auto argument_name = as_bytecode_fn->argument_names[i];
+                call_env->bind(argument_name, argument_values[as_bytecode_fn->argument_names.size() - i - 1]);
+            }
+            push_frame(StackFrame{
+                    call_env,
+                    as_bytecode_fn->bytecode,
+                    0
+            });
+        }
     }
 
     void BytecodeRunner::loop() {
