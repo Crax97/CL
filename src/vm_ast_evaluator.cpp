@@ -3,8 +3,6 @@
 //
 
 #include "vm_ast_evaluator.h"
-#include "commons.hpp"
-
 
 class [[maybe_unused]] CompilationException : public CL::CLException {
 public:
@@ -82,25 +80,25 @@ namespace CL {
         current_frame().add_opcode8(Opcode::Call, args.size());
     }
 
-    void VMASTEvaluator::visit_fun_def(const Names &fun_names, const ExprPtr &body) {
+    void VMASTEvaluator::visit_fun_def_statement(const String& fun_name, const Names &arg_names, const StatementPtr &body) {
         std::vector<uint16_t> indices;
-        indices.reserve(fun_names.size());
-        for (auto& name : fun_names) {
+        indices.reserve(arg_names.size());
+        for (auto& name : arg_names) {
             indices.push_back(get_name_index(name));
         }
         auto function = std::make_shared<FunctionFrame>(indices);
         push(function);
-        body->evaluate(*this);
+        body->execute(*this);
         pop();
 
         int32_t index = add_literal(function);
         current_frame().add_opcode32(Opcode::Load_Literal, index);
     }
 
-    void VMASTEvaluator::visit_block_expression(const ExprList &block) {
+    void VMASTEvaluator::visit_block_statement(const StatementList &block) {
         current_frame().add_opcode(Opcode::Push_Frame);
         for(auto& expr : block) {
-            expr->evaluate(*this);
+            expr->execute(*this);
         }
         current_frame().add_opcode(Opcode::Pop_Frame);
     }
@@ -122,34 +120,33 @@ namespace CL {
         current_frame().add_opcode(Opcode::Continue);
     }
 
-    void VMASTEvaluator::visit_if_expression(const ExprPtr &cond, const ExprPtr &expr, const ExprPtr &else_branch) {
+    void VMASTEvaluator::visit_if_statement(const ExprPtr &cond, const StatementPtr &expr, const StatementPtr &else_branch) {
         cond->evaluate(*this);
         int jump_else_location = current_frame().add_opcode32(Opcode::Jump_False, 0);
-        expr->evaluate(*this);
+        expr->execute(*this);
         int jump_if_location = current_frame().add_opcode32(Opcode::Jump, 0);
         current_frame().set32(jump_else_location, current_frame().bytecode_count());
-        else_branch->evaluate(*this);
+        else_branch->execute(*this);
         current_frame().set32(jump_if_location, current_frame().bytecode_count());
     }
 
-    void VMASTEvaluator::visit_while_expression(const ExprPtr &cond, const ExprPtr &body) {
+    void VMASTEvaluator::visit_while_statement(const ExprPtr &cond, const StatementPtr &body) {
         cond->evaluate(*this);
         int jump_location = current_frame().add_opcode32(Opcode::Jump_False, 0);
-        body->evaluate(*this);
+        body->execute(*this);
         current_frame().set32(jump_location, current_frame().bytecode_count());
     }
 
-    void VMASTEvaluator::visit_for_expression(const std::string &name, const ExprPtr &iterator, const ExprPtr &body) {
+    void VMASTEvaluator::visit_for_statement(const std::string &name, const ExprPtr &iterator, const StatementPtr &body) {
         get_name_index(name);
         iterator->evaluate(*this);
-        current_frame().add_opcode(Opcode::Get_Iter);
 
-        current_frame().add_opcode(Opcode::Iter_Has_Next);
         int for_location = current_frame().bytecode_count();
+        current_frame().add_opcode(Opcode::Iter_Has_Next);
         current_frame().add_opcode32(Opcode::Jump_False, 0);
         int jump_false_location = current_frame().bytecode_count();
         current_frame().add_opcode(Opcode::Get_Iter_Next);
-        body->evaluate(*this);
+        body->execute(*this);
         current_frame().add_opcode32(Opcode::Jump, for_location);
 
         current_frame().set32(jump_false_location, current_frame().bytecode_count());

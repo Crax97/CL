@@ -7,7 +7,8 @@
 #include "exceptions.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
-#include "ast_evaluator.hpp"
+#include "vm_ast_evaluator.h"
+#include "bytecode_runner.hpp"
 
 #include <fstream>
 #include <memory>
@@ -38,10 +39,13 @@ Script Script::from_source(const std::string &source, RuntimeEnvPtr env) {
 }
 
 std::optional<RuntimeValue> Script::run() {
-	auto evaluator = ASTEvaluator(m_execution_env);
+    SymbolTablePtr symbol_table = std::make_shared<SymbolTable>();
+	auto compiler = VMASTEvaluator(symbol_table);
 	for (const auto &expr : m_script_statements) {
-		expr->execute(evaluator);
+		expr->execute(compiler);
 	}
-	return evaluator.get_result();
+    auto program = compiler.get_program();
+	auto runner = program.create_runner(m_execution_env);
+	return runner->run();
 }
 }

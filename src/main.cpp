@@ -123,7 +123,7 @@ void compile_program(const std::filesystem::path& path){
     auto expressions = parser.parse_all();
     CL::VMASTEvaluator compiler(std::make_shared<CL::SymbolTable>());
     for(auto& expr : expressions) {
-        expr->evaluate(compiler);
+        expr->execute(compiler);
     }
     CL::CompiledProgram program = compiler.get_program();
 
@@ -167,7 +167,7 @@ void run_from_cli(const CL::RuntimeEnvPtr &env) {
             auto expressions = parser.parse_all();
             CL::VMASTEvaluator compiler(global_symbols);
             for(auto& expr : expressions) {
-                expr->evaluate(compiler);
+                expr->execute(compiler);
             }
             CL::CompiledProgram program = compiler.get_program();
             CL::BytecodeRunnerPtr runner = program.create_runner(env);

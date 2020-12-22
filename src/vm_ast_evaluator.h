@@ -64,19 +64,9 @@ namespace CL {
         void visit_assign_expression(const std::string &name,
                                              const ExprPtr &value) override;
         void visit_fun_call(const ExprPtr &fun, const ExprList &args) override;
-        void visit_fun_def(const Names &fun_names, const ExprPtr &body) override;
-        void visit_block_expression(const ExprList &block) override;
         void visit_return_expression(const ExprPtr &expr) override;
         void visit_break_expression() override;
         void visit_continue_expression() override;
-        void visit_if_expression(const ExprPtr &cond,
-                                         const ExprPtr &expr,
-                                         const ExprPtr &else_branch) override;
-        void visit_while_expression(const ExprPtr &cond,
-                                            const ExprPtr &body) override;
-        void visit_for_expression(const std::string &name,
-                                          const ExprPtr &iterator,
-                                          const ExprPtr &body) override;
         void visit_set_expression(const ExprPtr &obj,
                                           const ExprPtr &what,
                                           const ExprPtr &value) override;
@@ -84,6 +74,16 @@ namespace CL {
                                           const ExprPtr &what) override;
         void visit_module_definition(const ExprList &expressions) override;
 
+        void visit_fun_def_statement(const String& name, const Names &fun_names, const StatementPtr &body) override;
+        void visit_block_statement(const StatementList &block) override;
+        void visit_if_statement(const ExprPtr &cond,
+                                const StatementPtr &expr,
+                                const StatementPtr &else_branch) override;
+        void visit_while_statement(const ExprPtr &cond,
+                                   const StatementPtr &body) override;
+        void visit_for_statement(const std::string &name,
+                                 const ExprPtr &iterator,
+                                 const StatementPtr &body) override;
         [[maybe_unused]] CompiledProgram get_program() { return CompiledProgram {peek(), symbol_table}; }
 
         CompilationStackFrame& current_frame();
