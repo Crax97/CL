@@ -137,7 +137,7 @@ void CompiledProgram::write_to_file(const std::string &file_path) {
         for (auto& function : symbol_table->functions) {
 
             std::vector<std::string> names;
-            names.resize(function.second.names.size());
+            names.reserve(function.second.names.size());
             for (auto& name_index : function.second.names) {
                 names.emplace_back(symbol_table->get_name(name_index));
             }
