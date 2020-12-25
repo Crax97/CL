@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commons.hpp"
+#include "tokens.hpp"
 
 #include <istream>
 #include <list>
@@ -9,7 +10,6 @@
 #include <string>
 
 namespace CL {
-class Token;
 class Lexer {
 
 private:

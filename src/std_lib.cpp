@@ -76,7 +76,7 @@ private:
 public:
 
 	explicit FileObject(const std::string &path, const std::string &modestr) {
-		mode = static_cast<std::_Ios_Openmode>(0);
+		mode = static_cast<std::ios_base::openmode>(0);
 		if(modestr.find('r') != std::string::npos)
 			mode |= std::ios_base::in;
 		if(modestr.find('w') != std::string::npos)
@@ -214,18 +214,18 @@ void inject_stdlib_functions(const RuntimeEnvPtr &env) {
 void inject_math_functions(const RuntimeEnvPtr &env) {
 	auto dict_object = std::make_shared<Dictionary>();
 
-	dict_object->set_named("sin", CL::make_function(sin));
-	dict_object->set_named("cos", CL::make_function(cos));
-	dict_object->set_named("tan", CL::make_function(tan));
-	dict_object->set_named("atan2", CL::make_function(atan2));
-	dict_object->set_named("pow", CL::make_function(pow));
-	dict_object->set_named("exp", CL::make_function(exp));
-	dict_object->set_named("log10", CL::make_function(log10));
-	dict_object->set_named("log2", CL::make_function(log2));
+	dict_object->set_named("sin", CL::make_function<double, double>(sin));
+	dict_object->set_named("cos", CL::make_function<double, double>(cos));
+	dict_object->set_named("tan", CL::make_function<double, double>(tan));
+	dict_object->set_named("atan2", CL::make_function<double, double, double>(atan2));
+	dict_object->set_named("pow", CL::make_function<double, double, double>(pow));
+	dict_object->set_named("exp", CL::make_function<double, double>(exp));
+	dict_object->set_named("log10", CL::make_function<double, double>(log10));
+	dict_object->set_named("log2", CL::make_function<double, double>(log2));
 	dict_object->set_named("deg2rad", CL::make_function(deg2rad));
 	dict_object->set_named("rad2deg", CL::make_function(rad2deg));
-    dict_object->set_named("cosh", CL::make_function(cosh));
-    dict_object->set_named("sinh", CL::make_function(sinh));
+    dict_object->set_named("cosh", CL::make_function<double, double>(cosh));
+    dict_object->set_named("sinh", CL::make_function<double, double>(sinh));
 
 	// Explicit instantiation because there are more overloads for abs
 	dict_object->set_named("abs", CL::make_function<double, double>(abs));

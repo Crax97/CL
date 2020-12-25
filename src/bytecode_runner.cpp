@@ -200,7 +200,7 @@ namespace CL {
             if (result.has_value()) push(result.value());
         } else {
             auto call_env = std::make_shared<StackedEnvironment>(current_stack_frame().environment);
-            for (int i = 0; i < as_bytecode_fn->argument_names.size(); i++) {
+            for (int i = 0; i < call_arity; i++) {
                 auto argument_name = as_bytecode_fn->argument_names[i];
                 call_env->bind(argument_name, argument_values[as_bytecode_fn->argument_names.size() - i - 1]);
             }
