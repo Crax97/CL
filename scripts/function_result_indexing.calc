@@ -1,3 +1,0 @@
-f = fun(x) -> dict { "x" : x }
-
-print(f(10).x)

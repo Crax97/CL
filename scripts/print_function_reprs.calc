@@ -1,6 +1,0 @@
-complex = fun(x, y, z) -> x * y * z
-
-with_body = fun(a, b) -> { b if a > 0 else b if a < -50 else 100 }
-
-print(repr(complex))
-print(repr(with_body))

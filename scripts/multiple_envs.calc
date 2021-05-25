@@ -1,3 +1,0 @@
-a = 42
-get_a = fun() -> {{{{a}}}}
-print("get_a() is " + get_a())

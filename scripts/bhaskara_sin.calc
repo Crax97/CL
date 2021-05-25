@@ -1,5 +1,0 @@
-module {
-	bhaskara_sin = fun(x) -> {
-		(16 * x * (Math.PI - x)) / (5 * Math.PI ^ 2 - 4 * x * (Math.PI - x))
-	}
-}
