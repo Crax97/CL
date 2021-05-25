@@ -15,7 +15,9 @@ set(SOURCES
         src/ast_evaluator.cpp
         src/environment.cpp
         src/std_lib.cpp
-        src/script.cpp src/script.h src/helpers.h src/dictionary.cpp src/dictionary.h src/vm_ast_evaluator.cpp src/vm_ast_evaluator.h)
+        src/script.cpp src/script.h src/helpers.h src/dictionary.cpp src/dictionary.h src/vm_ast_evaluator.cpp src/vm_ast_evaluator.h
+        src/object_descriptor.cpp src/object_descriptor.h
+        src/object.cpp src/object.h)
 
 set(CL_SOURCES
         src/main.cpp

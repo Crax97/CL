@@ -31,19 +31,19 @@ struct NegateVisitor {
 };
 
 struct StringVisitor {
-	std::string operator()(const std::monostate) { return "nool"; }
-	std::string operator()(bool b) { return std::to_string(b); }
-	std::string operator()(const Number v) {
+	std::string operator()(const std::monostate) noexcept { return "nool"; }
+	std::string operator()(bool b) noexcept { return std::to_string(b); }
+	std::string operator()(const Number v) noexcept {
 		return num_to_str_pretty_formatted(v);
 	}
-	std::string operator()(const Module &mod) {
+	std::string operator()(const Module &mod) noexcept {
 		return "Module " + addr_to_hex_str(mod);
 	}
-	std::string operator()(const IndexablePtr &ptr) { return ptr->to_string(); }
-	std::string operator()(const CallablePtr &call) {
+	std::string operator()(const IndexablePtr &ptr) noexcept{ return ptr->to_string(); }
+	std::string operator()(const CallablePtr &call) noexcept {
 		return call->to_string();
 	}
-	std::string operator()(const String &str) {
+	std::string operator()(const String &str) noexcept {
 		return str;
 	}
 };
@@ -207,10 +207,10 @@ RuntimeValue &Module::get(const RuntimeValue &what) {
 	return m_env->get(what.as<String>());
 }
 
-std::string Module::to_string() const {
+std::string Module::to_string() const noexcept {
 	return "Module " + addr_to_hex_str(*this);
 }
-std::string Module::string_repr() const {
+std::string Module::string_repr() const noexcept {
 	return "module " + m_env->to_string();
 }
 RuntimeValue &Indexable::get_named(const std::string &name) {
@@ -252,10 +252,10 @@ Dictionary::Dictionary() {
 			},
 			1)));
 }
-std::string Dictionary::to_string() const {
+std::string Dictionary::to_string() const noexcept {
 	return "Dictionary " + addr_to_hex_str(*this);
 }
-std::string Dictionary::string_repr() const {
+std::string Dictionary::string_repr() const noexcept {
 	std::stringstream stream;
 	stream << " {\n";
 	for (const auto &pair : m_map) {

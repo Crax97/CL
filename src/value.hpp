@@ -17,24 +17,31 @@ namespace CL {
 
 constexpr uint8_t VAR_ARGS = 0xFF;
 
-class Indexable {
+class Stringable {
+public:
+	virtual std::string to_string() const noexcept = 0;
+	virtual std::string string_repr() const noexcept {
+		return to_string();
+	};
+};
+
+class Indexable : public Stringable {
 public:
 	virtual void set(const RuntimeValue &, RuntimeValue v) = 0;
 	virtual RuntimeValue &get(const RuntimeValue &) = 0;
 	void set_named(const std::string &name, RuntimeValue v);
 	RuntimeValue &get_named(const std::string &name);
 
-	virtual std::string to_string() const = 0;
-	virtual std::string string_repr() const = 0;
+
 };
 
-class Callable {
+class Callable : public Stringable  {
 public:
 	virtual std::optional<RuntimeValue> call(const Args &args) = 0;
 	std::optional<RuntimeValue> call();
 	virtual uint8_t arity() = 0;
 	[[nodiscard]]
-	virtual std::string to_string() const noexcept {
+	virtual std::string to_string() const noexcept override {
 		std::stringstream stream;
 		stream << "LambdaStyleFunction @0x" << std::hex;
 		auto addr = reinterpret_cast<uint64_t>(this);
@@ -42,7 +49,7 @@ public:
 		return stream.str();
 	}
 	[[nodiscard]]
-	virtual std::string string_repr() const noexcept { return to_string(); }
+	virtual std::string string_repr() const noexcept override { return to_string(); }
 };
 
 using RawValue = std::variant<std::monostate,
@@ -74,6 +81,15 @@ public:
 			return std::get<T>(m_value);
 		}
 		throw RuntimeException(to_string() + " is not " + typeid(T).name());
+	}
+
+	template<class T>
+	[[nodiscard]]
+	const std::shared_ptr<T> as_object() const {
+		if(is<IndexablePtr>()) {
+			return std::dynamic_pointer_cast<T>(std::get<IndexablePtr>(m_value));
+		}
+		throw RuntimeException(to_string() + " is not an object of class" + typeid(T).name());
 	}
 
 	void negate();
@@ -210,7 +226,7 @@ public:
 			throw RuntimeException("Tried indexing outside this list's range");
 		}
 	}
-	std::string to_string() const override {
+	std::string to_string() const noexcept override {
 		std::stringstream stream;
 		stream << "[";
 		for (const auto &v : m_list) {
@@ -219,7 +235,7 @@ public:
 		stream << "]";
 		return stream.str();
 	}
-	std::string string_repr() const override {
+	std::string string_repr() const noexcept override {
 		return "list " + to_string();
 	}
 };
@@ -239,8 +255,8 @@ public:
 		}
 		throw RuntimeException(s.to_string() + " not bound in dictionary\n");
 	}
-	std::string to_string() const override;
-	std::string string_repr() const override;
+	std::string to_string() const noexcept override;
+	std::string string_repr() const noexcept override;
 };
 
 class Module : public Indexable {
@@ -258,7 +274,7 @@ public:
 			 RuntimeValue) override {
 		throw RuntimeException("Modules aren't externally modifiable.");
 	}
-	std::string to_string() const override;
-	std::string string_repr() const override;
+	std::string to_string() const noexcept override;
+	std::string string_repr() const noexcept override;
 };
 } // namespace CL

@@ -135,10 +135,10 @@ public:
 		return readline();
 	}
 
-	std::string to_string() const override {
+	std::string to_string() const noexcept override {
 		return "File " + addr_to_hex_str(*this);
 	}
-	std::string string_repr() const override {
+	std::string string_repr() const noexcept override {
 		return "File " + addr_to_hex_str(*this);
 	}
 };
