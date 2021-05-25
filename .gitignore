@@ -1,0 +1,9 @@
+build
+.vscode
+.clangd
+.idea
+build-debug
+build-release
+!build/compile_commands.json
+cmake-build-debug
+cmake-build-release
