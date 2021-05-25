@@ -28,9 +28,9 @@ public:
 class Indexable : public Stringable {
 public:
 	virtual void set(const RuntimeValue &, RuntimeValue v) = 0;
-	virtual RuntimeValue &get(const RuntimeValue &) = 0;
+	virtual RuntimeValue get(const RuntimeValue &) = 0;
 	void set_named(const std::string &name, RuntimeValue v);
-	RuntimeValue &get_named(const std::string &name);
+	RuntimeValue get_named(const std::string &name);
 
 
 };
@@ -129,7 +129,7 @@ public:
 	}
 
 	[[nodiscard]]
-	RuntimeValue &get_property(const RuntimeValue &name) const {
+	RuntimeValue get_property(const RuntimeValue &name) const {
 		if(is<IndexablePtr>()) {
 			auto ind = as<IndexablePtr>();
 			return ind->get(name);
@@ -167,6 +167,9 @@ public:
 	}
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "google-explicit-constructor"
+	RuntimeValue(int n) noexcept
+		: m_value(static_cast<Number>(n)) {
+	}
 	RuntimeValue(Number n) noexcept
 		: m_value(n) {
 	}
@@ -212,7 +215,7 @@ public:
 		m_list.push_back(s);
 	}
 
-	RuntimeValue &get(const RuntimeValue &s) override {
+	RuntimeValue get(const RuntimeValue &s) override {
 		if(!s.is<Number>()) {
 			if(m_functions.find(s.raw_value()) == m_functions.end()) {
 				throw RuntimeException(s.to_string() + " is not bound. ");
@@ -249,7 +252,7 @@ public:
 	void set(const RuntimeValue &s, RuntimeValue v) override {
 		m_map[s.raw_value()] = v;
 	}
-	RuntimeValue &get(const RuntimeValue &s) override {
+	RuntimeValue get(const RuntimeValue &s) override {
 		if(m_map.find(s.raw_value()) != m_map.end()) {
 			return m_map.at(s.raw_value());
 		}
@@ -269,7 +272,7 @@ public:
 		: m_env(std::move(env)) {
 	}
 
-	RuntimeValue &get(const RuntimeValue &what) override;
+	RuntimeValue get(const RuntimeValue &what) override;
 	void set(const RuntimeValue &,
 			 RuntimeValue) override {
 		throw RuntimeException("Modules aren't externally modifiable.");

@@ -200,7 +200,7 @@ std::string RuntimeValue::string_representation() const noexcept {
 }
 
 const RawValue &RuntimeValue::raw_value() const noexcept { return m_value; }
-RuntimeValue &Module::get(const RuntimeValue &what) {
+RuntimeValue Module::get(const RuntimeValue &what) {
 	if(!what.is<String>()) {
 		throw RuntimeException("Modules are only indexable by strings!");
 	}
@@ -213,7 +213,7 @@ std::string Module::to_string() const noexcept {
 std::string Module::string_repr() const noexcept {
 	return "module " + m_env->to_string();
 }
-RuntimeValue &Indexable::get_named(const std::string &name) {
+RuntimeValue Indexable::get_named(const std::string &name) {
 	return get(name);
 }
 
