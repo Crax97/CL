@@ -14,13 +14,15 @@
 #include "object.h"
 #include "object_descriptor.h"
 
+using namespace  CL;
+
 class TestClass_Descriptor : public CL::ObjectDescriptor {
     public:
         TestClass_Descriptor();
 
 
-    virtual std::optional<CL::RuntimeValue> call(const CL::Args &args) override;
-    virtual uint8_t arity() override {
+    std::optional<CL::RuntimeValue> call(const CL::Args &args) override;
+    uint8_t arity() override {
         return 2;
     }
 };
@@ -40,8 +42,8 @@ public:
         return static_cast<double>(integerMember) + static_cast<float>(floatMember) + third; 
     }   
 
-    int getIntegerMember() { return integerMember; }
-    float getFloatMember() { return floatMember; }
+    int getIntegerMember() const { return integerMember; }
+    float getFloatMember() const { return floatMember; }
 };
 
 TestClass_Descriptor::TestClass_Descriptor() 
@@ -157,24 +159,16 @@ TEST_CASE("Testing language constructs with the AST evaluator") {
         auto function = env->get("divide");
         CHECK(function.as<CL::CallablePtr>()->call({10, 5}) == 2);
     }
+}
 
-    SUBCASE("Testing classes support") {
-
-
-
+TEST_CASE("Testing classes") {
+    SUBCASE("Testing classes reflection") {
         auto env = std::make_shared<CL::StackedEnvironment>();
-        TestClass_Descriptor::get_descriptor<TestClass_Descriptor>()->bind_into_env(env);
-        CL::inject_stdlib_functions(env);
-        auto source = std::string(R"source(
-            instance = TestClass(10, 1.0)
-            instance.integer_member = 38
-            instance.float_member = 3.0
-            result = instance.sum_members_with_third(1.0)
-        )source");
-        CL::Script::from_source(source, env).run();
-        auto instance = env->get("instance").as_object<TestClass>();
-        auto result = env->get("result").as<double>();
-        CHECK(instance->getIntegerMember() == 38);
-        CHECK(result == 42.0);
+        auto descriptor = TestClass_Descriptor::get_descriptor<TestClass_Descriptor>();
+        auto instance = descriptor->call(CL::Args{ CL::RuntimeValue{1}, CL::RuntimeValue{42.0f}}).value().as<CL::IndexablePtr>();
+        auto value = instance->get(CL::RuntimeValue(CL::String("integer_member"))).as<Number>();
+        auto float_value = instance->get(CL::RuntimeValue(CL::String("float_member"))).as<Number>();
+        CHECK(value == 1.0);
+        CHECK(float_value == 42.0);
     }
 }
